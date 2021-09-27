@@ -257,6 +257,13 @@ end
     @test pdf(d, 'c') ≈ 0.6*0.7
 end
 
+@testset "params" begin
+    d = UnivariateFinite(["x", "y"], [0.3, 0.7], pool=missing)
+    ps = Distributions.params(d)
+    @test ps.levels == ["x", "y"]
+    @test ps.probs == ("x" => 0.3, "y" => 0.7)
+end
+
 end # module
 
 true
