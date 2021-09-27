@@ -1,3 +1,14 @@
+# # LOCAL DEFINITION OF SCITYPE
+
+# This is to avoid making ScientificTypes a dependency.
+
+function scitype(c::CategoricalValue)
+    nc = length(levels(c.pool))
+    return ifelse(c.pool.ordered, OrderedFactor{nc}, Multiclass{nc})
+end
+
+
+
 # # CLASSES
 
 """
@@ -51,7 +62,7 @@ classes(v::CategoricalArray) = classes(CategoricalArrays.pool(v))
 # # CATEGORICAL VALUES TO INTEGERS
 
 """
-   int(x; type=nothing)
+   int(x)
 
 The positional integer of the `CategoricalValue` `x`, in the ordering
 defined by the pool of `x`. The type of `int(x)` is the reference type
