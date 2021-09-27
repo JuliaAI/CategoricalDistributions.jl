@@ -16,7 +16,7 @@ generated.
 Here the word "probabilities" is an abuse of terminology as there is
 no requirement that probabilities actually sum to one, only that they
 be non-negative. So `UnivariateFinite` objects actually implement
-arbitrary non-negative measures over finite sets of labelled points. A
+arbitrary non-negative measures over finite sets of labeled points. A
 `UnivariateDistribution` will be a bona fide probability measure when
 constructed using the `augment=true` option (see below) or when
 `fit` to data.
