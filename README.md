@@ -1,7 +1,7 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are labeled. 
+elements are labeled.
 
 Designed for performance in machine learning applications. For
 example, probabilistic classifiers in
@@ -58,10 +58,26 @@ A `UnivariateFinite` distribution can also be constructed directly
 from a probability vector:
 
 ```julia
-julia> UnivariateFinite(["maybe", "no", "yes"], [0.3, 0.5, 0.2], pool=data)
-UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
+julia> d2 = UnivariateFinite(["no", "yes"], [0.15, 0.85], pool=data)
+UnivariateFinite{Multiclass{3}}(no=>0.15, yes=>0.85)
 ```
 
+A `UnivariateFinite` distribution tracks all classes in the pool:
+
+```julia
+levels(d2)
+3-element Vector{String}:
+ "maybe"
+ "no"
+ "yes"
+
+julia> pdf(d2, "maybe")
+0.0
+
+julia> pdf(d2, "okay")
+ERROR: DomainError with Value okay not in pool. :
+```
+                   
 Arrays of `UnivariateFinite` distributions are defined using the same
 constructor, which allows for efficient broadcasting of `pdf`, for
 example:
@@ -81,17 +97,11 @@ julia> pdf.(v, "no")
  0.7
  0.6
 
-julia> pdf.(v, "maybe")
-3-element Vector{Float64}:
- 0.0
- 0.0
- 0.0
- 0.0
 ```
 
 Query the `UnivariateFinite` doc-string for advanced constructor options.
 
-A non-standard implementation of `pdf` allows extraction of the full
+A (non-standard) implementation of `pdf` allows for extraction of the full
 probability array:
 
 ```julia
