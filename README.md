@@ -158,6 +158,7 @@ over finite labeled sets.
 
 The initial release of this package is based almost entirely on code
 originally residing in
-[MLJBase.jl](https://github.com/JuliaAI/MLJBase.jl) contributed by
-Anthony Blaom, Thibaut Lienart and Samuel Okon. These contributions
-are not reflected in the current repository's commit history.
+[MLJBase.jl](https://github.com/JuliaAI/MLJBase.jl) with contributions
+from Anthony Blaom, Thibaut Lienart, Samuel Okon, and Chad
+Scherrer. These contributions are not reflected in the current
+repository's commit history.
