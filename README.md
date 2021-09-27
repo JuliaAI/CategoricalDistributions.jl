@@ -8,6 +8,10 @@ example, probabilistic classifiers in
 [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
 predict the `UnivariateFiniteVector` objects defined in this package.
 
+For probability distributions over integers (unlabelled data) see the
+[Distributions.jl](https://juliastats.org/Distributions.jl/stable/univariate/#Discrete-Distributions)
+package, whose methods the current package extends.
+
 | Linux | Coverage |
 | :------------ | :------- |
 | [![Build Status](https://github.com/JuliaAI/CategoricalDistributions.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/CategoricalDistributions.jl/actions) | [![Coverage](https://codecov.io/gh/JuliaAI/CategoricalDistributions.jl/branch/master/graph/badge.svg)](https://codecov.io/github/JuliaAI/CategoricalDistributions.jl?branch=master) |
