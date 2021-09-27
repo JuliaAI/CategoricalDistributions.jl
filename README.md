@@ -14,7 +14,7 @@ package, whose methods the current package extends.
 
 | Linux | Coverage |
 | :------------ | :------- |
-| [![Build Status](https://github.com/JuliaAI/CategoricalDistributions.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/CategoricalDistributions.jl/actions) | [![Coverage](https://codecov.io/gh/JuliaAI/CategoricalDistributions.jl/branch/master/graph/badge.svg)](https://codecov.io/github/JuliaAI/CategoricalDistributions.jl?branch=master) |
+| [![Build Status](https://github.com/JuliaAI/CategoricalDistributions.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/CategoricalDistributions.jl/actions) | [![Coverage](https://codecov.io/gh/JuliaAI/CategoricalDistributions.jl/branch/master/graph/badge.svg)](https://codecov.io/github/JuliaAI/CategoricalDistributions.jl?branch=dev) |
 
 ## Installation
 
