@@ -136,3 +136,42 @@ decoder(x) = CategoricalDecoder(classes(x))
 (d::CategoricalDecoder{V,R})(i::Integer) where {V,R} =
     CategoricalValue{V,R}(d.classes[i])
 (d::CategoricalDecoder)(a::AbstractArray{<:Integer}) = d.(a)
+
+
+## TRANSFORMING BETWEEN CATEGORICAL ELEMENTS AND RAW VALUES
+
+_err_missing_class(c) =  throw(DomainError(
+    "Value `$c` not in pool"))
+
+function _transform(pool, x)
+    ismissing(x) && return missing
+    x in levels(pool) || _err_missing_class(x)
+    return pool[get(pool, x)]
+end
+
+_transform(pool, X::AbstractArray) = broadcast(x -> _transform(pool, x), X)
+
+"""
+    transform(e::Union{CategoricalElement,CategoricalArray,CategoricalPool},  X)
+
+Transform the specified object `X` into a categorical version, using
+the pool contained in `e`. Here `X` is a raw value (an element of
+`levels(e)`) or an `AbstractArray` of such values.
+
+```julia
+v = categorical(["x", "y", "y", "x", "x"])
+julia> transform(v, "x")
+CategoricalValue{String,UInt32} "x"
+
+julia> transform(v[1], ["x" "x"; missing "y"])
+2×2 CategoricalArray{Union{Missing, Symbol},2,UInt32}:
+ "x"       "x"
+ missing   "y"
+
+**Private method.**
+
+"""
+transform(e::Union{CategoricalArray, CategoricalValue},
+                            arg) = _transform(CategoricalArrays.pool(e), arg)
+transform(e::CategoricalPool, arg) =
+    _transform(e, arg)

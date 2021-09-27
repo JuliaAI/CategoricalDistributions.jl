@@ -1,3 +1,15 @@
+module TestUtilities
+
+using Test
+using CategoricalDistributions
+using CategoricalArrays
+using Random
+using StableRNGs
+
+rng = StableRNGs.StableRNG(123)
+
+import CategoricalDistributions: classes, transform, decoder, int
+
 @testset "classes" begin
     v = categorical(collect("asqfasqffqsaaaa"), ordered=true)
     @test classes(v[1]) == levels(v)
@@ -52,6 +64,39 @@ end
 
     # Errors
     @test_throws DomainError int("g")
+end
+
+@testset "transforming from raw values and categorical values" begin
+    values = vcat([missing, ], collect("asdfjklqwerpoi"))
+    Xraw = rand(rng, values, 15, 10)
+    X = categorical(Xraw)
+    element = skipmissing(X) |> first
+
+    @test transform(element, missing) |> ismissing
+
+    raw = first(skipmissing(Xraw))
+    c = transform(element, raw)
+    @test Set(classes(c)) == Set(classes(X))
+    @test c == first(skipmissing(X))
+
+    RAW = Xraw[2:end-1,2:end-1]
+    C = transform(element, RAW)
+    @test Set(classes(C)) == Set(classes(X))
+    @test identity.(skipmissing(C)) ==
+        identity.(skipmissing(X[2:end-1,2:end-1]))
+
+    raw = first(skipmissing(Xraw))
+    c = transform(X, raw)
+    @test Set(classes(c)) == Set(classes(X))
+    @test c == first(skipmissing(X))
+
+    RAW = Xraw[2:end-1,2:end-1]
+    C = transform(X, RAW)
+    @test Set(classes(C)) == Set(classes(X))
+    @test identity.(skipmissing(C)) ==
+        identity.(skipmissing(X[2:end-1,2:end-1]))
+end
+
 end
 
 true
