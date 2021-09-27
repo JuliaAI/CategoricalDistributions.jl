@@ -64,6 +64,13 @@ end
     @test d1.prob_given_ref == d2.prob_given_ref
 end
 
+@testset "display" begin
+    d = UnivariateFinite(["x", "y"], [0.3, 0.7], pool=missing)
+    v = UnivariateFinite(["x", "y"], rand(3), augment=true, pool=missing)
+    io = IOBuffer()
+    print(io, d, v, [d, ], [v, ])
+end
+
 end
 
 true
