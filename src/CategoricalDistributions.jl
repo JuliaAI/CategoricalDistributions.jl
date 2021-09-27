@@ -11,7 +11,7 @@ const Dist = Distributions
 const STB = ScientificTypesBase
 
 include("utilities.jl")
-# include("types.jl")
+include("types.jl")
 # include("methods.jl")
 # include("arrays.jl")
 

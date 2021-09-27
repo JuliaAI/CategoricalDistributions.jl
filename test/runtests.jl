@@ -12,6 +12,10 @@ import CategoricalDistributions: classes, decoder, int
      @test include("utilities.jl")
 end
 
+@testset "types" begin
+     @test include("types.jl")
+end
+
 # @testset "methods" begin
 #      @test include("methods.jl")
 # end

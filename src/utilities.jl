@@ -4,7 +4,7 @@
 
 function scitype(c::CategoricalValue)
     nc = length(levels(c.pool))
-    return ifelse(c.pool.ordered, OrderedFactor{nc}, Multiclass{nc})
+    return ifelse(c.pool.ordered, STB.OrderedFactor{nc}, STB.Multiclass{nc})
 end
 
 
