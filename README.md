@@ -8,7 +8,14 @@ applications to classification.
 | :------------ | :------- |
 | [![Build Status](https://github.com/JuliaAI/CategoricalDistributions.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/CategoricalDistributions.jl/actions) | [![Coverage](https://codecov.io/gh/JuliaAI/CategoricalDistributions.jl/branch/master/graph/badge.svg)](https://codecov.io/github/JuliaAI/CategoricalDistributions.jl?branch=master) |
 
-## Very basic usage
+## Installation
+
+```julia
+using Pkg
+Pkg.add("CategoricalDistributions")
+```
+
+## Basic usage
 
 The sample space of the `UnivariateFinite` distributions provided by
 this package is the class pool of a `CategoricalArray`:
@@ -39,28 +46,42 @@ julia> mode(d)
 CategoricalValue{String, UInt32} "no"
 ```
 
-Efficient *arrays* of `UnivariateFinite` distributions can also be
-constructed and efficiently manipulated:
+A `UnivariateFinite` distribution can also be constructed directly
+from a probability vector:
+
+```julia
+julia> UnivariateFinite(["maybe", "no", "yes"], [0.3, 0.5, 0.2], pool=data)
+UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
+```
+
+Arrays of `UnivariateFinite` distributions are defined using the same
+constructor, which allows for efficient broadcasting of `pdf`, for
+example:
 
 ```
-julia> v = UnivariateFinite(["no", "yes"], [0.1, 0.2, 0.3], augment=true, pool=data)
-3-element UnivariateFiniteVector{Multiclass{3}, String, UInt32, Float64}:
+julia> v = UnivariateFinite(["no", "yes"], [0.1, 0.2, 0.3, 0.4], augment=true, pool=data)
+4-element UnivariateFiniteArray{Multiclass{3}, String, UInt32, Float64, 1}:
  UnivariateFinite{Multiclass{3}}(no=>0.9, yes=>0.1)
  UnivariateFinite{Multiclass{3}}(no=>0.8, yes=>0.2)
  UnivariateFinite{Multiclass{3}}(no=>0.7, yes=>0.3)
+ UnivariateFinite{Multiclass{3}}(no=>0.6, yes=>0.4)
 
 julia> pdf.(v, "no")
-3-element Vector{Float64}:
+4-element Vector{Float64}:
  0.9
  0.8
  0.7
+ 0.6
 
 julia> pdf.(v, "maybe")
 3-element Vector{Float64}:
  0.0
  0.0
  0.0
+ 0.0
 ```
+
+Query the `UnivariateFinite` doc-string for advanced constructor options.
 
 A non-standard implementation of `pdf` allows extraction of the full
 probability array:
@@ -71,13 +92,24 @@ julia> L = levels(data)
  "maybe"
  "no"
  "yes"
- 
+
 julia> pdf(v, L)
-3×3 Matrix{Float64}:
+4×3 Matrix{Float64}:
  0.0  0.9  0.1
  0.0  0.8  0.2
  0.0  0.7  0.3
+ 0.0  0.6  0.4
 ```
+
+
+## Measures over finite labelled sets
+
+There is, in fact, no enforcement that probablilities in a
+`UnivariateFinite` distribution sum to one, only that they be
+non-negative. Thus `UnivariateFinite` objects can be more properly
+understood as an implementation of arbitrary non-negative measures
+over finite labelled sets.
+
 
 ## What does this package provide?
 
@@ -86,25 +118,21 @@ julia> pdf(v, L)
   finite *labelled* sets. Here `S` is a subtype of `OrderedFactor`
   from ScientificTypesBase.jl, if the pool is ordered, or of
   `Multiclass` if the pool is unordered.
-  
+
 - A new array type `UnivariateFiniteArray{S} <:
   AbstractArray{<:UnivariateFinite{S}}` for efficiently manipulating
   arrays of `UnivariateFinite` distributions.
-  
+
 - Implementations of `rand` for generating random samples of a
   `UnivariateFinite` distribution.
-  
+
 - Implementations of the `pdf`, `logpdf` and `mode` methods of
   Distributions.jl, with efficient broadcasting over the new array
   type.
 
 - Implementation of `fit` from Distributions.jl for `UnivariateFinite`
   distributions.
-  
-- A single constructor for constructing `UnivariateFinite`
-  distributions and arrays thereof, from arrays of probabilities.
 
-There is, in fact, no enforcement that probablilities in a
-`UnivariateFinite` distribution sum to one and they can therefore be
-more properly understood as implementations of arbitrary finite
-measures over labelled sets.
+- A single constructor for constructing `UnivariateFinite`
+    distributions and arrays thereof, from arrays of probabilities.
+
