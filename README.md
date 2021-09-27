@@ -144,3 +144,10 @@ over finite labeled sets.
 - A single constructor for constructing `UnivariateFinite`
     distributions and arrays thereof, from arrays of probabilities.
 
+## Acknowledgements
+
+The initial release of this package is based almost entirely on code
+originally residing in
+[MLJBase.jl](https://github.com/JuliaAI/MLJBase.jl) contributed by
+Anthony Blaom, Thibaut Lienart and Samuel Okon. These contributions
+are not reflected in the current repository's commit history.
