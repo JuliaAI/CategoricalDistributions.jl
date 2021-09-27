@@ -56,6 +56,12 @@ end
     @test_logs((:warn, r"Ignoring"),
                UnivariateFinite(v[1:2], rand(3), augment=true, ordered=true));
 
+    # using `UnivariateFiniteArray` as a constructor just falls back
+    # to `UnivariateFinite` constructor:
+    probs  = rand(rng, n)
+    d1 = UnivariateFiniteArray(supp, probs, pool=missing, augment=true)
+    d2 = UnivariateFinite(supp, probs, pool=missing, augment=true)
+    @test d1.prob_given_ref == d2.prob_given_ref
 end
 
 end

@@ -20,6 +20,6 @@ end
      @test include("methods.jl")
 end
 
-# @testset "arrays.jl" begin
-#      @test include("arrays.jl")
-# end
+@testset "arrays.jl" begin
+     @test include("arrays.jl")
+end

@@ -150,6 +150,15 @@ struct UnivariateFinite{S,V,R,P} <: _UnivariateFinite_{S}
     prob_given_ref::LittleDict{R,P,Vector{R}, Vector{P}}
 end
 
+"""
+    UnivariateFiniteArray
+
+Array type whose elements are `UnivariateFinite` distributions sharing
+a common sample space (`CategoricalArrays` pool).
+
+See [`UnivariateFinite`](@ref) for constructor.
+
+"""
 struct UnivariateFiniteArray{S,V,R,P,N} <:
     AbstractArray{UnivariateFinite{S,V,R,P},N}
     scitype::Type{S}
@@ -487,3 +496,5 @@ function UnivariateFinite(probs::AbstractArray{<:Any,N};
                      augment=augment,
                      kwargs...)
 end
+
+UnivariateFiniteArray(args...; kwargs...) = UnivariateFinite(args...; kwargs...)

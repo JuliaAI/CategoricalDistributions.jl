@@ -1,6 +1,6 @@
 module CategoricalDistributions
 
-export UnivariateFinite
+export UnivariateFinite, UnivariateFiniteArray
 
 # re-eported from Distributions:
 export pdf, logpdf, support, mode
@@ -20,6 +20,6 @@ import Distributions: pdf, logpdf, support, mode
 include("utilities.jl")
 include("types.jl")
 include("methods.jl")
-# include("arrays.jl")
+include("arrays.jl")
 
 end
