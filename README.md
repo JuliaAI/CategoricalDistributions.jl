@@ -1,14 +1,14 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are labelled. 
+elements are labeled. 
 
 Designed for performance in machine learning applications. For
 example, probabilistic classifiers in
 [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
 predict the `UnivariateFiniteVector` objects defined in this package.
 
-For probability distributions over integers (unlabelled data) see the
+For probability distributions over integers (unlabeled data) see the
 [Distributions.jl](https://juliastats.org/Distributions.jl/stable/univariate/#Discrete-Distributions)
 package, whose methods the current package extends.
 
@@ -110,20 +110,20 @@ julia> pdf(v, L)
 ```
 
 
-## Measures over finite labelled sets
+## Measures over finite labeled sets
 
-There is, in fact, no enforcement that probablilities in a
+There is, in fact, no enforcement that probabilities in a
 `UnivariateFinite` distribution sum to one, only that they be
 non-negative. Thus `UnivariateFinite` objects can be more properly
 understood as an implementation of arbitrary non-negative measures
-over finite labelled sets.
+over finite labeled sets.
 
 
 ## What does this package provide?
 
 - A new type `UnivariateFinite{S}` for representing probability
   distributions over the pool of a `CategoricalArray`, that is, over
-  finite *labelled* sets. Here `S` is a subtype of `OrderedFactor`
+  finite *labeled* sets. Here `S` is a subtype of `OrderedFactor`
   from ScientificTypesBase.jl, if the pool is ordered, or of
   `Multiclass` if the pool is unordered.
 
