@@ -16,9 +16,9 @@ end
      @test include("types.jl")
 end
 
-# @testset "methods" begin
-#      @test include("methods.jl")
-# end
+@testset "methods" begin
+     @test include("methods.jl")
+end
 
 # @testset "methods" begin
 #      @test include("arrays.jl")
