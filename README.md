@@ -1,8 +1,12 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are labelled. Designed for performance in machine learning
-applications to classification.
+elements are labelled. 
+
+Designed for performance in machine learning applications. For
+example, probabilistic classifiers in
+[MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
+predict the `UnivariateFiniteVector` objects defined in this package.
 
 | Linux | Coverage |
 | :------------ | :------- |
