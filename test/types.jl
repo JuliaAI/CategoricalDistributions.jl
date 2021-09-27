@@ -47,7 +47,7 @@ end
     @test u.scitype == Multiclass{3}
 
     probs = [-1,0,1]
-    @test_throws(DomainError,
+    @test_throws(CategoricalDistributions.ERR_01,
                  UnivariateFinite(probs, pool=missing, augment=true))
 
     v = categorical(1:3)

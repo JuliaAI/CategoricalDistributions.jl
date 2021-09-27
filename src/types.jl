@@ -16,7 +16,7 @@ generated.
 Here the word "probabilities" is an abuse of terminology as there is
 no requirement that probabilities actually sum to one, only that they
 be non-negative. So `UnivariateFinite` objects actually implement
-arbitrary non-negative measures over finite sets of labeled points. A
+arbitrary non-negative measures over finite sets of labelled points. A
 `UnivariateDistribution` will be a bona fide probability measure when
 constructed using the `augment=true` option (see below) or when
 `fit` to data.
@@ -181,7 +181,7 @@ const Prob{P} = Union{P, AbstractArray{P}} where P
 # TODO: have error functions return exceptions, not throw them
 # TODO: are some of these now obsolete?
 
-_err_01() = throw(DomainError("Probabilities must be in [0,1]."))
+const ERR_01 = DomainError("Probabilities must be in [0,1].")
 _err_sum_1() = throw(DomainError(
     "Probability arrays must sum to one along the last axis. Perhaps "*
 "you meant to specify `augment=true`? "))
@@ -206,7 +206,7 @@ function _check_pool(pool)
     return nothing
 end
 _check_probs_01(probs) =
-    all(0 .<= probs .<= 1) || _err_01()
+    all(0 .<= probs .<= 1) || throw(ERR_01)
 _check_probs_sum(probs::Vector{<:Prob{P}}) where P =
     all(x -> x≈one(P), sum(probs)) || _err_sum_1()
 _check_probs(probs) = (_check_probs_01(probs); _check_probs_sum(probs))
