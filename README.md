@@ -1,14 +1,15 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are *labeled*.
+elements are *labeled* (consist of the class pool of a
+`CategoricalArray`).
 
 Designed for performance in machine learning applications. For
 example, probabilistic classifiers in
 [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
 predict the `UnivariateFiniteVector` objects defined in this package.
 
-For probability distributions over integers (unlabeled data) see the
+For probability distributions over integers see the
 [Distributions.jl](https://juliastats.org/Distributions.jl/stable/univariate/#Discrete-Distributions)
 package, whose methods the current package extends.
 
