@@ -61,6 +61,11 @@ end
     @test int(v) == 1:3
     levels!(v, ['c', 'a', 'b'])
     @test int(v) == [2, 3, 1]
+    @test int(missing) |> ismissing
+    v_int = int(categorical(['a', missing]))
+    @test length(v_int) == 2
+    @test v_int[1] == 1
+    @test ismissing(v_int[2])
 
     # Errors
     @test_throws DomainError int("g")
@@ -73,6 +78,10 @@ end
     element = skipmissing(X) |> first
 
     @test transform(element, missing) |> ismissing
+
+    # errors:
+    @test_throws(CategoricalDistributions.err_missing_class("non-existent"),
+                 transform(element, "non-existent"))
 
     raw = first(skipmissing(Xraw))
     c = transform(element, raw)
@@ -95,6 +104,11 @@ end
     @test Set(classes(C)) == Set(classes(X))
     @test identity.(skipmissing(C)) ==
         identity.(skipmissing(X[2:end-1,2:end-1]))
+
+    pool = CategoricalArrays.pool(element)
+    a = transform(element, 'a')
+    @test a == a
+    @test a isa CategoricalValue
 end
 
 end

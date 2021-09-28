@@ -135,7 +135,7 @@ function Base.Broadcast.broadcasted(
     u::UniFinArr{S,V,R,P,N},
     cv::CategoricalValue) where {S,V,R,P,N}
 
-    cv in classes(u) || _err_missing_class(cv)
+    cv in classes(u) || throw(err_missing_class(cv))
 
     f() = zeros(P, size(u)) #default caller function
 
@@ -161,7 +161,7 @@ function Base.Broadcast.broadcasted(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
     for cv in v
-        ismissing(cv) || cv in classes(u) || _err_missing_class(cv)
+        ismissing(cv) || cv in classes(u) || throw(err_missing_class(cv))
     end
 
     # will use linear indexing:

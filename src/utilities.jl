@@ -140,12 +140,11 @@ decoder(x) = CategoricalDecoder(classes(x))
 
 ## TRANSFORMING BETWEEN CATEGORICAL ELEMENTS AND RAW VALUES
 
-_err_missing_class(c) =  throw(DomainError(
-    "Value `$c` not in pool"))
+err_missing_class(c) =  DomainError("Value `$c` not in pool")
 
 function _transform(pool, x)
     ismissing(x) && return missing
-    x in levels(pool) || _err_missing_class(x)
+    x in levels(pool) || throw(err_missing_class(x))
     return pool[get(pool, x)]
 end
 
