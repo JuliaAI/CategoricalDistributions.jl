@@ -182,22 +182,19 @@ const Prob{P} = Union{P, AbstractArray{P}} where P
 # TODO: are some of these now obsolete?
 
 const ERR_01 = DomainError("Probabilities must be in [0,1].")
-_err_sum_1() = throw(DomainError(
-    "Probability arrays must sum to one along the last axis. Perhaps "*
-"you meant to specify `augment=true`? "))
-_err_dim(support, probs) = throw(DimensionMismatch(
-"Probability array is incompatible "*
-"with the number of classes, $(length(support)), which should "*
-"be equal to `$(size(probs)[end])`, the last dimension "*
-"of the array. Perhaps you meant to set `augment=true`? "))
-_err_dim_augmented(support, probs) = throw(DimensionMismatch(
-"Probability array to be augmented is incompatible "*
-"with the number of classes, $(length(support)), which should "*
-"be one more than `$(size(probs)[end])`, the last dimension "*
-    "of the array. "))
-_err_aug() = throw(ArgumentError(
+err_dim(support, probs) = DimensionMismatch(
+    "Probability array is incompatible "*
+    "with the number of classes, $(length(support)), which should "*
+    "be equal to `$(size(probs)[end])`, the last dimension "*
+    "of the probability array. Perhaps you meant to set `augment=true`? ")
+err_dim_augmented(support, probs) = DimensionMismatch(
+    "Probability array to be augmented is incompatible "*
+    "with the number of classes, $(length(support)), which should "*
+    "be one more than `$(size(probs)[end])`, the last dimension "*
+    "of the probability array. ")
+const ERR_AUG = ArgumentError(
     "Array cannot be augmented. There are "*
-    "sums along the last axis exceeding one. "))
+    "sums along the last axis exceeding one. ")
 
 function _check_pool(pool)
     ismissing(pool) || pool == nothing ||
@@ -207,12 +204,10 @@ function _check_pool(pool)
 end
 _check_probs_01(probs) =
     all(0 .<= probs .<= 1) || throw(ERR_01)
-_check_probs_sum(probs::Vector{<:Prob{P}}) where P =
-    all(x -> x≈one(P), sum(probs)) || _err_sum_1()
 _check_probs(probs) = (_check_probs_01(probs); _check_probs_sum(probs))
 _check_augmentable(support, probs) = _check_probs_01(probs) &&
     size(probs)[end] + 1 == length(support) ||
-    _err_dim_augmented(support, probs)
+    throw(err_dim_augmented(support, probs))
 
 
 ## AUGMENTING ARRAYS TO MAKE THEM PROBABILITY ARRAYS
@@ -232,7 +227,7 @@ function _augment_probs(::Val{false},
     aug_size = size(probs) |> collect
     aug_size[end] += 1
     augmentation = _unwrap(one(P) .- sum(probs, dims=N))
-    all(0 .<= augmentation .<= 1) || _err_aug()
+    all(0 .<= augmentation .<= 1) || throw(ERR_AUG)
     aug_probs = Array{P}(undef, aug_size...)
     aug_probs[fill(:, N - 1)..., 2:end] = probs
     aug_probs[fill(:, N - 1)..., 1] = augmentation
@@ -244,7 +239,7 @@ function _augment_probs(::Val{true},
     _check_probs_01(probs)
     aug_size = [size(probs)..., 2]
     augmentation = one(P) .- probs
-    all(0 .<= augmentation .<= 1) || _err_aug()
+    all(0 .<= augmentation .<= 1) || throw(ERR_AUG)
     aug_probs = Array{P}(undef, aug_size...)
     aug_probs[fill(:, N)..., 2] = probs
     aug_probs[fill(:, N)..., 1] = augmentation
@@ -369,6 +364,9 @@ function _UnivariateFinite(support::AbstractVector{CategoricalValue{V,R}},
         error("Non-unique vector of classes specified")
 
     _probs = augment ? _augment_probs(support, probs) : probs
+
+    augment || length(support) == size(_probs) |> last ||
+        throw(err_dim(support, _probs))
 
     # it's necessary to force the typing of the LittleDict otherwise it
     # flips to Any type (unlike regular Dict):

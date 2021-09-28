@@ -21,6 +21,7 @@ import Random
 
     @test_logs((:warn, r"No "),
                UnivariateFinite(['f', 'q', 's'],  [0.7, 0.2, 0.1]))
+
 end
 
 @testset "array constructors" begin
@@ -32,7 +33,27 @@ end
     probs  = rand(rng, n)
     supp = ["class1", "class2"]
 
-    u = UnivariateFinite(supp, probs, pool=missing, augment=true);
+    UnivariateFinite(supp, probs, pool=missing, augment=true);
+
+    # dimension mismatches:
+    badprobs = rand(40, 3)
+    @test_throws(CategoricalDistributions.err_dim(supp, badprobs),
+                 UnivariateFinite(supp, badprobs, pool=missing))
+
+    # dimension mismatch, augmented case:
+    probs2 = [0.1 0.5 0.1;
+              0.3 0.2 0.1]
+    supp2 = ["no", "yes", "maybe"]
+    @test_throws(CategoricalDistributions.err_dim_augmented(supp2, probs2),
+                 UnivariateFinite(supp2, probs2, augment=true, pool=missing))
+
+    # not augmentable:
+    @test_throws(CategoricalDistributions.ERR_AUG,
+                 UnivariateFinite(["no", "yes", "maybe"],
+                                  [0.6 0.5;   # sum exceeding one!
+                                   0.3 0.2],
+                                  augment=true,
+                                  pool=missing))
 
     # autosupport:
     u = UnivariateFinite(probs, pool=missing, augment=true);
