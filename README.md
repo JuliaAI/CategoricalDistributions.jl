@@ -77,10 +77,10 @@ julia> pdf(d2, "maybe")
 julia> pdf(d2, "okay")
 ERROR: DomainError with Value okay not in pool. :
 ```
-                   
+
 Arrays of `UnivariateFinite` distributions are defined using the same
-constructor, which allows for efficient broadcasting of `pdf`, for
-example:
+constructor. Broadcasting methods, such as `pdf`, is optimized for
+such arrays:
 
 ```
 julia> v = UnivariateFinite(["no", "yes"], [0.1, 0.2, 0.3, 0.4], augment=true, pool=data)
