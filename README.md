@@ -1,7 +1,7 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are labeled.
+elements are *labeled*.
 
 Designed for performance in machine learning applications. For
 example, probabilistic classifiers in
