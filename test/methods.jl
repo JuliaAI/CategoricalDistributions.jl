@@ -264,6 +264,20 @@ end
     @test ps.probs == ("x" => 0.3, "y" => 0.7)
 end
 
+@testset "equality/approx" begin
+    ϵ = 0.0000000000000001
+    η = 0.01
+    d = UnivariateFinite(["x", "y"], [0.3, 0.7], pool=missing)
+    d_close = UnivariateFinite(["x", "y"], [0.3 + ϵ, 0.7 - ϵ], pool=missing)
+    d_far = UnivariateFinite(["x", "y"], [0.3 + η, 0.7], pool=missing)
+    @test d ≈ d_close
+    @test !(d ≈ d_far)
+    # v = [d, d]
+    # v_close = [d_close, d_close]
+    # @test v ≈ v_close
+end
+
+
 end # module
 
 true

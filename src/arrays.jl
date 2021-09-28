@@ -1,5 +1,7 @@
 const UniFinArr = UnivariateFiniteArray
 
+# TODO: make sure approx methods work for arrays
+
 Base.size(u::UniFinArr, args...) =
     size(first(values(u.prob_given_ref)), args...)
 
