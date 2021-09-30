@@ -35,9 +35,13 @@ using CategoricalArrays
 import Distributions
 data = ["no", "yes", "no", "maybe", "maybe", "no",
        "maybe", "no", "maybe"] |> categorical
-julia> d = fit(UnivariateFinite, data)
-UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
-
+julia> d = Distributions.fit(UnivariateFinite, data)
+               UnivariateFinite{Multiclass{3}}
+         ┌                                        ┐
+   maybe ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.4
+      no ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.5
+     yes ┤■■■■■■■ 0.1
+         └                                        ┘
 julia> pdf(d, "no")
 0.5
 
