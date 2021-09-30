@@ -32,21 +32,28 @@ this package is the class pool of a `CategoricalArray`:
 ```julia
 using CategoricalDistributions
 using CategoricalArrays
+import Distributions
 julia> data = rand(["yes", "no", "maybe"], 10) |> categorical
 10-element CategoricalArray{String,1,UInt32}:
- "maybe"
- "maybe"
  "no"
  "yes"
+ "no"
+ "maybe"
+ "maybe"
+ "no"
  "maybe"
  "no"
  "no"
- "no"
- "no"
- "yes"
+ "maybe"
 
-julia> d = fit(UnivariateFinite, data)
-UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
+julia> d = Distributions.fit(UnivariateFinite, data)
+               UnivariateFinite{Multiclass{3}}
+         ┌                                        ┐
+   maybe ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.4
+      no ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.5
+     yes ┤■■■■■■■ 0.1
+         └                                        ┘
+
 
 julia> pdf(d, "no")
 0.5
