@@ -32,19 +32,9 @@ this package is the class pool of a `CategoricalArray`:
 ```julia
 using CategoricalDistributions
 using CategoricalArrays
-julia> data = rand(["yes", "no", "maybe"], 10) |> categorical
-10-element CategoricalArray{String,1,UInt32}:
- "maybe"
- "maybe"
- "no"
- "yes"
- "maybe"
- "no"
- "no"
- "no"
- "no"
- "yes"
-
+import Distributions
+data = ["no", "yes", "no", "maybe", "maybe", "no",
+       "maybe", "no", "maybe"] |> categorical
 julia> d = fit(UnivariateFinite, data)
 UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
 
@@ -60,7 +50,11 @@ from a probability vector:
 
 ```julia
 julia> d2 = UnivariateFinite(["no", "yes"], [0.15, 0.85], pool=data)
-UnivariateFinite{Multiclass{3}}(no=>0.15, yes=>0.85)
+             UnivariateFinite{Multiclass{3}}
+       ┌                                        ┐
+    no ┤■■■■■■ 0.15
+   yes ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.85
+       └                                        ┘
 ```
 
 A `UnivariateFinite` distribution tracks all classes in the pool:
