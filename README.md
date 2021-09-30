@@ -147,8 +147,8 @@ over finite labeled sets.
   Distributions.jl, with efficient broadcasting over the new array
   type.
 
-- Implementation of `fit` from Distributions.jl for `UnivariateFinite`
-  distributions.
+- Implementation of `Distributions.fit` from Distributions.jl for
+  `UnivariateFinite` distributions.
 
 - A single constructor for constructing `UnivariateFinite`
     distributions and arrays thereof, from arrays of probabilities.
