@@ -73,12 +73,12 @@ levels(d2)
 julia> pdf(d2, "maybe")
 0.0
 
-julia> pdf(d2, "okay")
+julia> pdf(d2, "okay")https://github.com/JuliaAI/CategoricalDistributions.jl#measures-over-finite-labeled-sets
 ERROR: DomainError with Value okay not in pool. :
 ```
 
 Arrays of `UnivariateFinite` distributions are defined using the same
-constructor. Broadcasting methods, such as `pdf`, is optimized for
+constructor. Broadcasting methods, such as `pdf`, are optimized for
 such arrays:
 
 ```
