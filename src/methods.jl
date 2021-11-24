@@ -79,6 +79,15 @@ function Base.show(stream::IO, d::UnivariateFinite)
     print(stream, "UnivariateFinite{$(d.scitype)}($arg_str)")
 end
 
+function Base.show(io::IO, mime::MIME"text/plain",
+                   d::UnivariateFinite{S}) where S
+    s = support(d)
+    x = string.(CategoricalArrays.DataAPI.unwrap.(s))
+    y = pdf.(d, s)
+    plt = barplot(x, y, title="UnivariateFinite{$S}")
+    show(io, mime, plt)
+end
+
 show_prefix(u::UnivariateFiniteArray{S,V,R,P,1}) where {S,V,R,P} =
     "$(length(u))-element"
 show_prefix(u::UnivariateFiniteArray) = join(size(u),'x')

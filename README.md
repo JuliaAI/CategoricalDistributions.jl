@@ -1,14 +1,15 @@
 # CategoricalDistributions.jl
 
 Probability distributions and measures for finite sample spaces whose
-elements are *labeled*.
+elements are *labeled* (consist of the class pool of a
+`CategoricalArray`).
 
 Designed for performance in machine learning applications. For
 example, probabilistic classifiers in
 [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
 predict the `UnivariateFiniteVector` objects defined in this package.
 
-For probability distributions over integers (unlabeled data) see the
+For probability distributions over integers see the
 [Distributions.jl](https://juliastats.org/Distributions.jl/stable/univariate/#Discrete-Distributions)
 package, whose methods the current package extends.
 
@@ -31,22 +32,16 @@ this package is the class pool of a `CategoricalArray`:
 ```julia
 using CategoricalDistributions
 using CategoricalArrays
-julia> data = rand(["yes", "no", "maybe"], 10) |> categorical
-10-element CategoricalArray{String,1,UInt32}:
- "maybe"
- "maybe"
- "no"
- "yes"
- "maybe"
- "no"
- "no"
- "no"
- "no"
- "yes"
-
-julia> d = fit(UnivariateFinite, data)
-UnivariateFinite{Multiclass{3}}(maybe=>0.3, no=>0.5, yes=>0.2)
-
+import Distributions
+data = ["no", "yes", "no", "maybe", "maybe", "no",
+       "maybe", "no", "maybe"] |> categorical
+julia> d = Distributions.fit(UnivariateFinite, data)
+               UnivariateFinite{Multiclass{3}}
+         ┌                                        ┐
+   maybe ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.4
+      no ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.5
+     yes ┤■■■■■■■ 0.1
+         └                                        ┘
 julia> pdf(d, "no")
 0.5
 
@@ -59,7 +54,11 @@ from a probability vector:
 
 ```julia
 julia> d2 = UnivariateFinite(["no", "yes"], [0.15, 0.85], pool=data)
-UnivariateFinite{Multiclass{3}}(no=>0.15, yes=>0.85)
+             UnivariateFinite{Multiclass{3}}
+       ┌                                        ┐
+    no ┤■■■■■■ 0.15
+   yes ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.85
+       └                                        ┘
 ```
 
 A `UnivariateFinite` distribution tracks all classes in the pool:
@@ -74,12 +73,12 @@ levels(d2)
 julia> pdf(d2, "maybe")
 0.0
 
-julia> pdf(d2, "okay")
+julia> pdf(d2, "okay")https://github.com/JuliaAI/CategoricalDistributions.jl#measures-over-finite-labeled-sets
 ERROR: DomainError with Value okay not in pool. :
 ```
 
 Arrays of `UnivariateFinite` distributions are defined using the same
-constructor. Broadcasting methods, such as `pdf`, is optimized for
+constructor. Broadcasting methods, such as `pdf`, are optimized for
 such arrays:
 
 ```
@@ -148,8 +147,8 @@ over finite labeled sets.
   Distributions.jl, with efficient broadcasting over the new array
   type.
 
-- Implementation of `fit` from Distributions.jl for `UnivariateFinite`
-  distributions.
+- Implementation of `Distributions.fit` from Distributions.jl for
+  `UnivariateFinite` distributions.
 
 - A single constructor for constructing `UnivariateFinite`
     distributions and arrays thereof, from arrays of probabilities.

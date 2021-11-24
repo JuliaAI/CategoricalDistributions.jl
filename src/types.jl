@@ -131,7 +131,7 @@ same size as the array.
 
 # extend Ditributions type hiearchy to account for non-euclidean
 # supports:
-abstract type Categorical{S<:STB.Finite} <: Dist.ValueSupport end
+abstract type Categorical{S<:Finite} <: Dist.ValueSupport end
 
 # not exported:
 const _UnivariateFinite_{S} =
