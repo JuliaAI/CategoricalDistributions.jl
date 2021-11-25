@@ -136,58 +136,6 @@ end
 
 # TODO: It would be useful to define == as well.
 
-# TODO: Now that `UnivariateFinite` is any finite measure, we can
-# replace the following nonsense with an overloading of `+`. I think
-# it is only used in MLJEnsembles.jl - but need to check. I believe
-# this is a private method we can easily remove
-
-function average(dvec::AbstractVector{UnivariateFinite{S,V,R,P}};
-                 weights=nothing) where {S,V,R,P}
-
-    n = length(dvec)
-
-    Dist.@check_args(UnivariateFinite, weights == nothing || n==length(weights))
-
-    # check all distributions have consistent pool:
-    first_index = first(dvec).decoder.classes
-    for d in dvec
-        d.decoder.classes == first_index ||
-            error("Averaging UnivariateFinite distributions with incompatible"*
-                  " pools. ")
-    end
-
-    # get all refs:
-    refs = reduce(union, [keys(d.prob_given_ref) for d in dvec]) |> collect
-
-    # initialize the prob dictionary for the distribution sum:
-    prob_given_ref = LittleDict{R,P}([refs...], zeros(P, length(refs)))
-
-    # make vector of all the distributions dicts padded to have same common keys:
-    prob_given_ref_vec = map(dvec) do d
-        merge(prob_given_ref, d.prob_given_ref)
-    end
-
-    # sum up:
-    if weights == nothing
-        scale = 1/n
-        for x in refs
-            for k in 1:n
-                prob_given_ref[x] += scale*prob_given_ref_vec[k][x]
-            end
-        end
-    else
-        scale = 1/sum(weights)
-        for x in refs
-            for k in 1:n
-                prob_given_ref[x] +=
-                    weights[k]*prob_given_ref_vec[k][x]*scale
-            end
-        end
-    end
-    d1 = first(dvec)
-    return UnivariateFinite(sample_scitype(d1), d1.decoder, prob_given_ref)
-end
-
 """
     Dist.pdf(d::UnivariateFinite, x)
 

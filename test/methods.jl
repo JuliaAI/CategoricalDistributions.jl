@@ -239,24 +239,6 @@ end
           UnivariateFinite([maybe, yes, no], [0.7, 0.2, 0.1])))
 end
 
-@testset "UnivariateFinite arithmetic" begin
-    v = categorical(collect("abc"))
-    a , b, c = v[1], v[2], v[3]
-
-    d1  = UnivariateFinite([a, b], [0.2, 0.8])
-    d2  = UnivariateFinite([b, c], [0.3, 0.7])
-    dvec = [d1, d2]
-    d = CategoricalDistributions.average(dvec)
-    @test pdf(d, 'a') ≈ 0.1
-    @test pdf(d, 'b') ≈ 0.55
-    @test pdf(d, 'c') ≈ 0.35
-    w = [4, 6]
-    d = CategoricalDistributions.average(dvec, weights=w)
-    @test pdf(d, 'a') ≈ 0.4*0.2
-    @test pdf(d, 'b') ≈ 0.4*0.8 + 0.6*0.3
-    @test pdf(d, 'c') ≈ 0.6*0.7
-end
-
 @testset "params" begin
     d = UnivariateFinite(["x", "y"], [0.3, 0.7], pool=missing)
     ps = Distributions.params(d)
