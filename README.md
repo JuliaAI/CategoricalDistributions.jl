@@ -122,10 +122,10 @@ julia> pdf(v, L)
 ## Measures over finite labeled sets
 
 There is, in fact, no enforcement that probabilities in a
-`UnivariateFinite` distribution sum to one, only that they be
-non-negative. Thus `UnivariateFinite` objects can be more properly
-understood as an implementation of arbitrary non-negative measures
-over finite labeled sets.
+`UnivariateFinite` distribution sum to one, only that they be belong
+to a type `T` for which `zero(T)` is defined. In particular
+`UnivariateFinite` objects implement arbitrary non-negative, signed,
+or complex measures over a finite labeled set.
 
 
 ## What does this package provide?
