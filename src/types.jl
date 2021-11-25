@@ -129,14 +129,6 @@ same size as the array.
 
 # # TYPES - PLAIN AND ARRAY
 
-# extend Ditributions type hiearchy to account for non-euclidean
-# supports:
-abstract type Categorical{S<:Finite} <: Dist.ValueSupport end
-
-# not exported:
-const _UnivariateFinite_{S} =
-    Dist.Distribution{Dist.Univariate,Categorical{S}}
-
 # R - reference type <: Unsigned
 # V - type of class labels (eg, Char in `categorical(['a', 'b'])`)
 # P - raw probability type
@@ -144,7 +136,7 @@ const _UnivariateFinite_{S} =
 
 # Note that the keys of `prob_given_ref` need not exhaust all the
 # refs of all classes but will be ordered (LittleDicts preserve order)
-struct UnivariateFinite{S,V,R,P} <: _UnivariateFinite_{S}
+struct UnivariateFinite{S,V,R,P}
     scitype::Type{S}
     decoder::CategoricalDecoder{V,R}
     prob_given_ref::LittleDict{R,P,Vector{R}, Vector{P}}
