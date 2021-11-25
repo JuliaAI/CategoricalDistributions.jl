@@ -254,6 +254,7 @@ function Base.Broadcast.broadcasted(::typeof(mode),
     return reshape(mode_flat, size(u))
 end
 
+
 ## EXTENSION OF CLASSES TO ARRAYS OF UNIVARIATE FINITE
 
 # We already have `classes(::UnivariateFininiteArray)
@@ -266,3 +267,5 @@ function classes(yhat::AbstractArray{<:Union{Missing,UnivariateFinite}})
     i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
     return classes(yhat[i])
 end
+
+

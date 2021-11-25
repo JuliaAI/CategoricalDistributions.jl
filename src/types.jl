@@ -15,7 +15,7 @@ generated.
 
 Here the word "probabilities" is an abuse of terminology as there is
 no requirement that the that probabilities actually sum to one. Indeed
-there is no restriction on the probablities at all. In particular,
+there is no restriction on the probabilities at all. In particular,
 `UnivariateFinite` objects implement arbitrary non-negative, signed,
 or complex measures over finite sets of labelled points. A
 `UnivariateDistribution` will be a bona fide probability measure when
@@ -40,28 +40,37 @@ constructor then returns an array of `UnivariateFinite` distributions
 of size `(n1, n2, ..., nk)`.
 
 ```
-using CategoricalArrays
-v = categorical([:x, :x, :y, :x, :z])
+using CategoricalDistributions, CategoricalArrays, Distributions
+samples = categorical(['x', 'x', 'y', 'x', 'z'])
+julia> Distributions.fit(UnivariateFinite, samples)
+           UnivariateFinite{Multiclass{3}}
+     ┌                                        ┐
+   x ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.6
+   y ┤■■■■■■■■■■■■ 0.2
+   z ┤■■■■■■■■■■■■ 0.2
+     └                                        ┘
 
-julia> UnivariateFinite(classes(v), [0.2, 0.3, 0.5])
-UnivariateFinite{Multiclass{3}}(x=>0.2, y=>0.3, z=>0.5)
-
-julia> d = UnivariateFinite([v[1], v[end]], [0.1, 0.9])
+julia> d = UnivariateFinite([samples[1], samples[end]], [0.1, 0.9])
 UnivariateFinite{Multiclass{3}(x=>0.1, z=>0.9)
+           UnivariateFinite{Multiclass{3}}
+     ┌                                        ┐
+   x ┤■■■■ 0.1
+   z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
+     └                                        ┘
 
 julia> rand(d, 3)
 3-element Array{Any,1}:
- CategoricalArrays.CategoricalValue{Symbol,UInt32} :z
- CategoricalArrays.CategoricalValue{Symbol,UInt32} :z
- CategoricalArrays.CategoricalValue{Symbol,UInt32} :z
+ CategoricalValue{Symbol,UInt32} 'z'
+ CategoricalValue{Symbol,UInt32} 'z'
+ CategoricalValue{Symbol,UInt32} 'z'
 
-julia> levels(d)
+julia> levels(samples)
 3-element Array{Symbol,1}:
- :x
- :y
- :z
+ 'x'
+ 'y'
+ 'z'
 
-julia> pdf(d, :y)
+julia> pdf(d, 'y')
 0.0
 ```
 
@@ -80,19 +89,27 @@ In the last case, specify `ordered=true` if the pool is to be
 considered ordered.
 
 ```
-julia> UnivariateFinite([:x, :z], [0.1, 0.9], pool=missing, ordered=true)
-UnivariateFinite{OrderedFactor{2}}(x=>0.1, z=>0.9)
+julia> UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=missing, ordered=true)
+         UnivariateFinite{OrderedFactor{2}}
+     ┌                                        ┐
+   x ┤■■■■ 0.1
+   z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
+     └                                        ┘
 
-julia> d = UnivariateFinite([:x, :z], [0.1, 0.9], pool=v) # v defined above
-UnivariateFinite(x=>0.1, z=>0.9) (Multiclass{3} samples)
+samples = categorical(['x', 'x', 'y', 'x', 'z'])
+julia> d = UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=samples)
+     ┌                                        ┐
+   x ┤■■■■ 0.1
+   z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
+     └                                        ┘
 
-julia> pdf(d, :y) # allowed as `:y in levels(v)`
+julia> pdf(d, 'y') # allowed as `'y' in levels(samples)`
 0.0
 
-v = categorical([:x, :x, :y, :x, :z, :w])
+v = categorical(['x', 'x', 'y', 'x', 'z', 'w'])
 probs = rand(100, 3)
 probs = probs ./ sum(probs, dims=2)
-julia> UnivariateFinite([:x, :y, :z], probs, pool=v)
+julia> d1 = UnivariateFinite(['x', 'y', 'z'], probs, pool=v)
 100-element UnivariateFiniteVector{Multiclass{4},Symbol,UInt32,Float64}:
  UnivariateFinite{Multiclass{4}}(x=>0.194, y=>0.3, z=>0.505)
  UnivariateFinite{Multiclass{4}}(x=>0.727, y=>0.234, z=>0.0391)
@@ -109,6 +126,18 @@ dimension of the array. This means the user only provides probabilities
 for the classes `c2, c3, ..., cn`. The class `c1` probabilities are
 chosen so that each `UnivariateFinite` distribution in the returned
 array is a bona fide probability distribution.
+
+```julia
+julia> UnivariateFinite([0.1, 0.2, 0.3], augment=true, pool=missing)
+3-element UnivariateFiniteArray{Multiclass{2}, String, UInt8, Float64, 1}:
+ UnivariateFinite{Multiclass{2}}(class_1=>0.9, class_2=>0.1)
+ UnivariateFinite{Multiclass{2}}(class_1=>0.8, class_2=>0.2)
+ UnivariateFinite{Multiclass{2}}(class_1=>0.7, class_2=>0.3)
+
+d2 = UnivariateFinite(['x', 'y', 'z'], probs[:, 2:end], augment=true, pool=v)
+julia> pdf(d1, levels(v)) ≈ pdf(d2, levels(v))
+true
+```
 
 ---
 
