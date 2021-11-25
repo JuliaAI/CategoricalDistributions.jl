@@ -14,15 +14,15 @@ choosing `probs` to be an array of one higher dimension than the array
 generated.
 
 Here the word "probabilities" is an abuse of terminology as there is
-no requirement that the that probabilities actually sum to one. Indeed
-there is no restriction on the probabilities at all. In particular,
-`UnivariateFinite` objects implement arbitrary non-negative, signed,
-or complex measures over finite sets of labelled points. A
-`UnivariateDistribution` will be a bona fide probability measure when
-constructed using the `augment=true` option (see below) or when `fit`
-to data. And the probabilities of a `UnivariateFinite` object `d` must
-be non-negative, with a non-zero sum, for `rand(d)` to be defined and
-interpretable.
+no requirement that the that probabilities actually sum to one. The
+only requirement is that the probabilities have a common type `T` for
+which `zero(T)` is defined. In particular, `UnivariateFinite` objects
+implement arbitrary non-negative, signed, or complex measures over
+finite sets of labelled points. A `UnivariateDistribution` will be a
+bona fide probability measure when constructed using the
+`augment=true` option (see below) or when `fit` to data. And the
+probabilities of a `UnivariateFinite` object `d` must be non-negative,
+with a non-zero sum, for `rand(d)` to be defined and interpretable.
 
 Unless `pool` is specified, `support` should have type
  `AbstractVector{<:CategoricalValue}` and all elements are assumed to
