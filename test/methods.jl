@@ -277,6 +277,31 @@ end
     # @test v ≈ v_close
 end
 
+@tesset "arithmetic" begin
+    L = ["yes", "no"]
+    d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+    d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+
+    # addition and subtraction:
+    for op in [:+, :-]
+        quote
+            s = $op(d1, d2 )
+            @test $op(pdf(d1, L), pdf(d2, L)) ≈ pdf(s, L)
+        end |> eval
+    end
+
+    # negative:
+    d_neg = -d1
+    @test pdf(d_neg, L) == -pdf(d1, L)
+
+    # multiplication by scalar:
+    d3 = d1/42
+    @test pdf(d3, L) ≈ pdf(d1, L)/42
+
+    # division by scalar:
+    d3 = d1/42
+    @test pdf(d3, L) ≈ pdf(d1, L)/42
+end
 
 end # module
 

@@ -14,12 +14,15 @@ choosing `probs` to be an array of one higher dimension than the array
 generated.
 
 Here the word "probabilities" is an abuse of terminology as there is
-no requirement that probabilities actually sum to one, only that they
-be non-negative. So `UnivariateFinite` objects actually implement
-arbitrary non-negative measures over finite sets of labelled points. A
+no requirement that the that probabilities actually sum to one. Indeed
+there is no restriction on the probablities at all. In particular,
+`UnivariateFinite` objects implement arbitrary non-negative, signed,
+or complex measures over finite sets of labelled points. A
 `UnivariateDistribution` will be a bona fide probability measure when
-constructed using the `augment=true` option (see below) or when
-`fit` to data.
+constructed using the `augment=true` option (see below) or when `fit`
+to data. And the probabilities of a `UnivariateFinite` object `d` must
+be non-negative, with a non-zero sum, for `rand(d)` to be defined and
+interpretable.
 
 Unless `pool` is specified, `support` should have type
  `AbstractVector{<:CategoricalValue}` and all elements are assumed to
@@ -144,11 +147,14 @@ const _UnivariateFinite_{S} =
 
 # Note that the keys of `prob_given_ref` need not exhaust all the
 # refs of all classes but will be ordered (LittleDicts preserve order)
+DOC_CONSTRUCTOR
 struct UnivariateFinite{S,V,R,P} <: _UnivariateFinite_{S}
     scitype::Type{S}
     decoder::CategoricalDecoder{V,R}
     prob_given_ref::LittleDict{R,P,Vector{R}, Vector{P}}
 end
+
+@doc DOC_CONSTRUCTOR UnivariateFinite
 
 """
     UnivariateFiniteArray

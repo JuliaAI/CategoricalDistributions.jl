@@ -79,11 +79,22 @@ function Base.show(stream::IO, d::UnivariateFinite)
     print(stream, "UnivariateFinite{$(d.scitype)}($arg_str)")
 end
 
+Base.show(io::IO, mime::MIME"text/plain",
+          d::UnivariateFinite) = show(io, d)
+
+# in common case of `Real` probabilities we can do a pretty bar plot:
 function Base.show(io::IO, mime::MIME"text/plain",
-                   d::UnivariateFinite{S}) where S
+                   d::UnivariateFinite{<:Finite{K},V,R,P}) where {K,V,R,P<:Real}
+    show_bars = false
+    if K <= MAX_NUM_LEVELS_TO_SHOW_BARS &&
+        all(>=(0), values(d.prob_given_ref))
+        show_bars = true
+    end
+    show_bars || return show(io, d)
     s = support(d)
     x = string.(CategoricalArrays.DataAPI.unwrap.(s))
     y = pdf.(d, s)
+    S = d.scitype
     plt = barplot(x, y, title="UnivariateFinite{$S}")
     show(io, mime, plt)
 end
@@ -371,3 +382,59 @@ function Dist.fit(d::Type{<:UnivariateFinite},
 end
 
 
+# ## ARITHMETIC
+
+const ERR_DIFFERENT_SAMPLE_SPACES = ArgumentError(
+    "Adding two `UnivariateFinite` objects whose "*
+    "sample spaces have different labellings is not allowed. ")
+
+import Base: +, *, /
+
+function +(d1::U, d2::U) where U <: UnivariateFinite
+    classes(d1) == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    S = d1.scitype
+    decoder = d1.decoder
+    prob_given_ref = copy(d1.prob_given_ref)
+    for ref in keys(prob_given_ref)
+        prob_given_ref[ref] += d2.prob_given_ref[ref]
+    end
+    return UnivariateFinite(S, decoder, prob_given_ref)
+end
+
+function -(d::UnivariateFinite)
+    S = d.scitype
+    decoder = d.decoder
+    prob_given_ref = copy(d.prob_given_ref)
+    for ref in keys(prob_given_ref)
+        prob_given_ref[ref] = -prob_given_ref[ref]
+    end
+    return UnivariateFinite(S, decoder, prob_given_ref)
+end
+
+function -(d1::U, d2::U) where U <: UnivariateFinite
+    classes(d1) == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    S = d1.scitype
+    decoder = d1.decoder
+    prob_given_ref = copy(d1.prob_given_ref)
+    for ref in keys(prob_given_ref)
+        prob_given_ref[ref] -= d2.prob_given_ref[ref]
+    end
+    return UnivariateFinite(S, decoder, prob_given_ref)
+end
+
+# TODO: remove type restrction on `x` in the following methods if
+# https://github.com/JuliaStats/Distributions.jl/issues/1438 is
+# resolved. Currently we'd have a method ambiguity
+
+function *(d::UnivariateFinite, x::Real)
+    S = d.scitype
+    decoder = d.decoder
+    prob_given_ref = copy(d.prob_given_ref)
+    for ref in keys(prob_given_ref)
+        prob_given_ref[ref] *= x
+    end
+    return UnivariateFinite(d.scitype, decoder, prob_given_ref)
+end
+*(x::Real, d::UnivariateFinite) = d*x
+
+/(d::UnivariateFinite, x::Real) = d*inv(x)

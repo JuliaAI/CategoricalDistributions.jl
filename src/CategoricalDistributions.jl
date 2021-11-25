@@ -9,6 +9,7 @@ using Random
 using UnicodePlots
 
 const Dist = Distributions
+const MAX_NUM_LEVELS_TO_SHOW_BARS = 12
 
 import Distributions: pdf, logpdf, support, mode
 
