@@ -17,6 +17,7 @@ include("utilities.jl")
 include("types.jl")
 include("methods.jl")
 include("arrays.jl")
+include("arithmetic.jl")
 
 export UnivariateFinite, UnivariateFiniteArray
 
