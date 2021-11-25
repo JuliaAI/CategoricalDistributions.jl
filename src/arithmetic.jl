@@ -46,9 +46,9 @@ end
 -(d1::U, d2::U) where U <: UnivariateFiniteArray =
     _minus(d1, d2, UnivariateFiniteArray)
 
-# TODO: remove type restrction on `x` in the following methods if
-# https://github.com/JuliaStats/Distributions.jl/issues/1438 is
-# resolved. Currently we'd have a method ambiguity
+# It seems that the restriction `x::Number` below (applying only to the
+# array case) is unavoidable because of a method ambiguity with
+# `Base.*(::AbstractArray, ::Number)`.
 
 function _times(d, x, T)
     S = d.scitype
@@ -59,8 +59,10 @@ function _times(d, x, T)
     end
     return T(d.scitype, decoder, prob_given_ref)
 end
-*(d::UnivariateFinite, x::Real) = _times(d, x, UnivariateFinite)
-*(d::UnivariateFiniteArray, x::Real) = _times(d, x, UnivariateFiniteArray)
+*(d::UnivariateFinite, x) = _times(d, x, UnivariateFinite)
+*(d::UnivariateFiniteArray, x::Number) = _times(d, x, UnivariateFiniteArray)
 
-*(x::Real, d::SingletonOrArray) = d*x
-/(d::SingletonOrArray, x::Real) = d*inv(x)
+*(x, d::UnivariateFinite) = d*x
+*(x::Number, d::UnivariateFiniteArray) = d*x
+/(d::UnivariateFinite, x) = d*inv(x)
+/(d::UnivariateFiniteArray, x::Number) = d*inv(x)

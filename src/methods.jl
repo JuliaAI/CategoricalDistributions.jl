@@ -333,6 +333,6 @@ end
 # # BROADCASTING OVER SINGLE UNIVARIATE FINITE
 
 # This mirrors behaviour assigned Distributions.Distribution objects,
-# which allows `pdf.(d::UnivariateFinite, support(d))` to work. 
+# which allows `pdf.(d::UnivariateFinite, support(d))` to work.
 
 Broadcast.broadcastable(d::UnivariateFinite) = Ref(d)

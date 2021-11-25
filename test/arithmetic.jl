@@ -32,6 +32,10 @@ d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
     # division by scalar:
     d3 = d1/42
     @test pdf.(d3, L) ≈ pdf.(d1, L)/42
+
+    # "probabilities" that aren't:
+    d = UnivariateFinite(L, randn(rng, 2) + im*randn(2), pool=missing)
+    @test pdf.(3*d -(4*d)/2, L) ≈ pdf.(d, L)
 end
 
 p = [0.1, 0.9]
