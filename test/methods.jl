@@ -277,10 +277,11 @@ end
     # @test v ≈ v_close
 end
 
-@tesset "arithmetic" begin
-    L = ["yes", "no"]
-    d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
-    d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+L = ["yes", "no"]
+d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+
+@testset "arithmetic" begin
 
     # addition and subtraction:
     for op in [:+, :-]
@@ -295,8 +296,10 @@ end
     @test pdf(d_neg, L) == -pdf(d1, L)
 
     # multiplication by scalar:
-    d3 = d1/42
-    @test pdf(d3, L) ≈ pdf(d1, L)/42
+    d3 = d1*42
+    @test pdf(d3, L) ≈ pdf(d1, L)*42
+    d3 = 42*d1
+    @test pdf(d3, L) ≈ pdf(d1, L)*42
 
     # division by scalar:
     d3 = d1/42

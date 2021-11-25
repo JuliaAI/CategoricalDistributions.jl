@@ -203,6 +203,10 @@ end
 
 const UnivariateFiniteVector{S,V,R,P} = UnivariateFiniteArray{S,V,R,P,1}
 
+# private:
+const SingletonOrArray{S,V,R,P} = Union{UnivariateFinite{S,V,R,P},
+                                        UnivariateFiniteArray{S,V,R,P}}
+
 
 # # CHECKS AND ERROR MESSAGES
 
@@ -273,6 +277,7 @@ function _augment_probs(::Val{true},
                         probs::AbstractArray{P,N}) where {P,N}
     _check_probs_01(probs)
     aug_size = [size(probs)..., 2]
+    @show probs P
     augmentation = one(P) .- probs
     all(0 .<= augmentation .<= 1) || throw(ERR_AUG)
     aug_probs = Array{P}(undef, aug_size...)
