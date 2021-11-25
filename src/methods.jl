@@ -371,3 +371,9 @@ function Dist.fit(d::Type{<:UnivariateFinite},
 end
 
 
+# # BROADCASTING OVER SINGLE UNIVARIATE FINITE
+
+# This mirrors behaviour assigned Distributions.Distribution objects,
+# which allows `pdf.(d::UnivariateFinite, support(d))` to work. 
+
+Broadcast.broadcastable(d::UnivariateFinite) = Ref(d)

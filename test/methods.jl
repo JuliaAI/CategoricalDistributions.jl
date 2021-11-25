@@ -121,6 +121,11 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     @test pdf(d, "class_1") == 0.7
 end
 
+@testset "broadcasting pdf over single UnivariateFinite object" begin
+    d = UnivariateFinite(["a", "b"], [0.1, 0.9], pool=missing);
+    @test pdf.(d, ["a", "b"]) == [0.1, 0.9]
+end 
+
 @testset "constructor arguments not categorical values" begin
     @test_throws ArgumentError UnivariateFinite(Dict('f'=>0.7, 'q'=>0.2))
     @test_throws ArgumentError UnivariateFinite(Dict('f'=>0.7, 'q'=>0.2),
@@ -276,7 +281,6 @@ end
     # v_close = [d_close, d_close]
     # @test v ≈ v_close
 end
-
 
 end # module
 
