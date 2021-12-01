@@ -73,7 +73,7 @@ levels(d2)
 julia> pdf(d2, "maybe")
 0.0
 
-julia> pdf(d2, "okay")https://github.com/JuliaAI/CategoricalDistributions.jl#measures-over-finite-labeled-sets
+julia> pdf(d2, "okay")
 ERROR: DomainError with Value okay not in pool. :
 ```
 
