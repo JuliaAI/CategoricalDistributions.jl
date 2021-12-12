@@ -49,7 +49,7 @@ end
     u = UnivariateFinite(probs, pool=missing)
     @test u isa UnivariateFinite
     @test pdf(u, "class_1") == probs[1]
-    probs = rand(10, 2)
+    probs = rand(rng, 10, 2)
     probs = probs ./ sum(probs, dims=2)
     u = UnivariateFinite(probs, pool=missing)
     @test length(u) == 10
@@ -66,9 +66,11 @@ end
 
     v = categorical(1:3)
     @test_logs((:warn, r"Ignoring"),
-               UnivariateFinite(v[1:2], rand(3), augment=true, pool=missing))
+               UnivariateFinite(v[1:2], rand(rng, 3),
+                                augment=true, pool=missing))
     @test_logs((:warn, r"Ignoring"),
-               UnivariateFinite(v[1:2], rand(3), augment=true, ordered=true))
+               UnivariateFinite(v[1:2], rand(rng, 3),
+                                augment=true, ordered=true))
 
 end
 
@@ -106,7 +108,7 @@ end
 end
 
 n = 10
-P = rand(n);
+P = rand(rng, n);
 all_classes = categorical(["no", "yes"], ordered=true)
 u = UnivariateFinite(all_classes, P, augment=true) #uni_fin_arr
 
@@ -143,7 +145,7 @@ end
 
     # check unseen probablities are a zero *array*:
     v = categorical(1:4)
-    probs = rand(3)
+    probs = rand(rng, 3)
     u2 = UnivariateFinite(v[1:2], probs, augment=true)
     @test pdf.(u2, v[3]) == zeros(3)
     @test isequal(logpdf.(u2, v[3]), log.(zeros(3)))
@@ -152,7 +154,7 @@ end
 _skip(v) = collect(skipmissing(v))
 
 @testset "broadcasting: pdf.(uni_fin_arr, array_same_shape) and logpdf.(uni_fin_arr, array_same_shape)" begin
-    v0 = categorical(rand(string.(classes(u)), n))
+    v0 = categorical(rand(rng, string.(classes(u)), n))
     vm = vcat(v0[1:end-1], [missing, ])
     for v in [v0, vm]
         @test _skip(broadcast(pdf, u, v)) ==
@@ -202,8 +204,8 @@ end
 
     # ordered:
     v = categorical(["no", "yes", "maybe", "unseen"])
-    u1 = UnivariateFinite([v[1], v[2]], rand(5), augment=true)
-    u2 = UnivariateFinite([v[3], v[2]], rand(6), augment=true)
+    u1 = UnivariateFinite([v[1], v[2]], rand(rng, 5), augment=true)
+    u2 = UnivariateFinite([v[3], v[2]], rand(rng, 6), augment=true)
     us = (u1, u2)
     u = cat(us..., dims=1)
     @test length(u) == length(u1) + length(u2)
@@ -222,8 +224,8 @@ end
 
     # unordered:
     v = categorical(["no", "yes", "maybe", "unseen"], ordered=true)
-    u1 = UnivariateFinite([v[1], v[2]], rand(5), augment=true)
-    u2 = UnivariateFinite([v[3], v[2]], rand(6), augment=true)
+    u1 = UnivariateFinite([v[1], v[2]], rand(rng, 5), augment=true)
+    u2 = UnivariateFinite([v[3], v[2]], rand(rng, 6), augment=true)
     us = (u1, u2)
     u = cat(us..., dims=1)
     @test length(u) == length(u1) + length(u2)
@@ -252,7 +254,7 @@ end
     v1 = categorical(1:2, ordered=true)
     v2 = categorical(v1, ordered=true)
     levels!(v2, levels(v2) |> reverse )
-    probs = rand(3)
+    probs = rand(rng, 3)
     u1 = UnivariateFinite(v1, probs, augment=true)
     u2 = UnivariateFinite(v2, probs, augment=true)
     @test_throws DomainError vcat(u1, u2)
@@ -267,7 +269,7 @@ end
 
 @testset "classes" begin
     v = categorical(collect("abca"), ordered=true)
-    u1 = UnivariateFinite([v[1], v[2]], rand(5), augment=true)
+    u1 = UnivariateFinite([v[1], v[2]], rand(rng, 5), augment=true)
     @test classes(u1) == collect("abc")
     u2 = [missing, u1...]
     @test classes(u2) == collect("abc")
