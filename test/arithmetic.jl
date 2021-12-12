@@ -39,9 +39,9 @@ d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
 end
 
 p = [0.1, 0.9]
-P = vcat(fill(p', 10^5)...)
-slow = fill(UnivariateFinite(L, p, pool=missing), 10^5)
-fast = UnivariateFinite(L, P, pool=missing)
+P = vcat(fill(p', 10^5)...);
+slow = fill(UnivariateFinite(L, p, pool=missing), 10^5);
+fast = UnivariateFinite(L, P, pool=missing);
 # @assert pdf(slow, L) == pdf(fast, L)
 
 @testset "performant arithmetic for UnivariateFiniteArray" begin
