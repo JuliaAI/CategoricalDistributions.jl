@@ -23,3 +23,7 @@ end
 @testset "arrays.jl" begin
      @test include("arrays.jl")
 end
+
+@testset "arithmetic.jl" begin
+     @test include("arithmetic.jl")
+end
