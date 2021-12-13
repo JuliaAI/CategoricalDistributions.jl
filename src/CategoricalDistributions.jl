@@ -9,6 +9,7 @@ using Random
 using UnicodePlots
 
 const Dist = Distributions
+const MAX_NUM_LEVELS_TO_SHOW_BARS = 12
 
 import Distributions: pdf, logpdf, support, mode
 
@@ -16,6 +17,7 @@ include("utilities.jl")
 include("types.jl")
 include("methods.jl")
 include("arrays.jl")
+include("arithmetic.jl")
 
 export UnivariateFinite, UnivariateFiniteArray
 
