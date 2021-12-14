@@ -196,6 +196,12 @@ function Dist.mode(d::UnivariateFinite)
     p = values(dic)
     max_prob = maximum(p)
     m = first(first(dic)) # mode, just some ref for now
+
+    # `maximum` of any iterable containing `NaN` would return `NaN` 
+    # For this case the index `m` won't be updated in the loop below as relations
+    # involving NaN as one of it's arguments always returns false
+    # (e.g `==(NaN, NaN)` returns false)
+    throw_nan_error_if_needed(max_prob)
     for (x, prob) in dic
         if prob == max_prob
             m = x
@@ -203,6 +209,18 @@ function Dist.mode(d::UnivariateFinite)
         end
     end
     return d.decoder(m)
+end
+
+function throw_nan_error_if_needed(x)
+    if isnan(x)
+        throw(
+            DomainError(
+                NaN,
+                "`mode` is invalid for `UnivariateFininite` distribution "*
+                "with `pdf` containing `NaN`s"
+            )
+        )
+    end
 end
 
 # mode(v::Vector{UnivariateFinite}) = mode.(v)
