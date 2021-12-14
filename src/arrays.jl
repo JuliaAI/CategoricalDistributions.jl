@@ -243,6 +243,12 @@ function Base.Broadcast.broadcasted(::typeof(mode),
     mode_flat = map(1:length(u)) do i
         max_prob = maximum(dic[ref][i] for ref in keys(dic))
         m = zero(R)
+        
+        # `maximum` of any iterable containing `NaN` would return `NaN` 
+        # For this case the index `m` won't be updated in the loop as relations
+        # involving NaN as one of it's argument always returns false 
+        # (e.g `==(NaN, NaN)` returns false)
+        throw_nan_error_if_needed(max_prob)
         for ref in keys(dic)
             if dic[ref][i] == max_prob
                 m = ref
