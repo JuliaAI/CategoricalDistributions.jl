@@ -21,7 +21,8 @@ always true.
 
 Not to be confused with `levels(x.pool)`. See the example below.
 
-Also, overloaded for `x` a `CategoricalArray` or `CategoricalPool`.
+Also, overloaded for `x` a `CategoricalArray`, `CategoricalPool`, and
+for views of `CategoricalArray`.
 
 **Private method.*
 
@@ -57,7 +58,7 @@ Also, overloaded for `x` a `CategoricalArray` or `CategoricalPool`.
 classes(p::CategoricalPool) = [p[i] for i in 1:length(p)]
 classes(x::CategoricalValue) = classes(CategoricalArrays.pool(x))
 classes(v::CategoricalArray) = classes(CategoricalArrays.pool(v))
-
+classes(v::SubArray{<:Any, <:Any, <:CategoricalArray}) = classes(parent(v))
 
 # # CATEGORICAL VALUES TO INTEGERS
 
