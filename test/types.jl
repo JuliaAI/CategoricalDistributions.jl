@@ -36,7 +36,7 @@ end
     UnivariateFinite(supp, probs, pool=missing, augment=true);
 
     # dimension mismatches:
-    badprobs = rand(40, 3)
+    badprobs = rand(rng, 40, 3)
     @test_throws(CategoricalDistributions.err_dim(supp, badprobs),
                  UnivariateFinite(supp, badprobs, pool=missing))
 
@@ -60,7 +60,7 @@ end
     probs = probs ./ sum(probs)
     u = UnivariateFinite(probs, pool=missing);
     @test u isa UnivariateFinite
-    probs = rand(10, 2)
+    probs = rand(rng, 10, 2)
     probs = probs ./ sum(probs, dims=2)
     u = UnivariateFinite(probs, pool=missing);
     @test u.scitype == Multiclass{2}
@@ -73,9 +73,11 @@ end
 
     v = categorical(1:3)
     @test_logs((:warn, r"Ignoring"),
-               UnivariateFinite(v[1:2], rand(3), augment=true, pool=missing));
+               UnivariateFinite(v[1:2], rand(rng, 3),
+                                augment=true, pool=missing));
     @test_logs((:warn, r"Ignoring"),
-               UnivariateFinite(v[1:2], rand(3), augment=true, ordered=true));
+               UnivariateFinite(v[1:2], rand(rng, 3),
+                                augment=true, ordered=true));
 
     # using `UnivariateFiniteArray` as a constructor just falls back
     # to `UnivariateFinite` constructor:
