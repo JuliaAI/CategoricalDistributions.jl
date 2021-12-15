@@ -17,6 +17,8 @@ import CategoricalDistributions: classes, transform, decoder, int
     levels!(v, reverse(levels(v)))
     @test classes(v[1]) == levels(v)
     @test classes(v) == levels(v)
+    vsub = view(v, 1:2)
+    @test classes(vsub) == classes(v)
 end
 
 @testset "int, classes, decoder" begin
