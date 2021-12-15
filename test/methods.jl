@@ -175,6 +175,10 @@ end
     p[42] = 0.5
     d = UnivariateFinite(v, p)
     @test mode(d) == 42
+
+    # `mode` of `Univariate` objects containing `NaN` in probs.
+    unf = UnivariateFinite([0.1, 0.2, NaN, 0.1, NaN], pool=missing)
+    @test_throws DomainError mode(unf)
 end
 
 @testset "UnivariateFinite methods" begin

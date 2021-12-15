@@ -198,6 +198,17 @@ end
     u   = UnivariateFinite(P, pool=missing)
     expected = mode.([u...])
     @test all(mode.(u) .== expected)
+
+    # `mode` broadcasting of `Univariate` objects containing `NaN` in probs.
+    unf_arr = UnivariateFinite(
+        [
+            0.1 0.2 NaN 0.1 NaN;
+            0.2 0.1 0.1 0.4 0.2;
+            0.3 NaN 0.2 NaN 0.3
+        ],
+        pool=missing
+    )
+    @test_throws DomainError mode.(unf_arr)
 end
 
 @testset "cat for UnivariateFiniteArray" begin
