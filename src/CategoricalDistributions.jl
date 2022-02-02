@@ -19,7 +19,7 @@ include("methods.jl")
 include("arrays.jl")
 include("arithmetic.jl")
 
-export UnivariateFinite, UnivariateFiniteArray
+export UnivariateFinite, UnivariateFiniteArray, UnivariateFiniteVector
 
 # re-eport from Distributions:
 export pdf, logpdf, support, mode
