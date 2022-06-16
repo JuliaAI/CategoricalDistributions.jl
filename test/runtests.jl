@@ -3,6 +3,7 @@ using CategoricalDistributions
 using CategoricalArrays
 using Distributions
 using Random
+using ScientificTypes
 using StableRNGs # for RNGs stable across all julia versions
 rng = StableRNGs.StableRNG(123)
 
@@ -14,6 +15,10 @@ end
 
 @testset "types" begin
      @test include("types.jl")
+end
+
+@testset "scitypes" begin
+     @test include("scitypes.jl")
 end
 
 @testset "methods" begin

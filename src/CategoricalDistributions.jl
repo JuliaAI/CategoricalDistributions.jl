@@ -1,7 +1,14 @@
 module CategoricalDistributions
 
 import Distributions
-import ScientificTypes: Finite, Multiclass, OrderedFactor, scitype, DefaultConvention
+import ScientificTypes:
+    Finite,
+    Multiclass,
+    OrderedFactor,
+    DefaultConvention,
+    Density,
+    ScientificTypesBase
+
 using OrderedCollections
 using CategoricalArrays
 import Missings
@@ -15,6 +22,7 @@ import Distributions: pdf, logpdf, support, mode
 
 include("utilities.jl")
 include("types.jl")
+include("scitypes.jl")
 include("methods.jl")
 include("arrays.jl")
 include("arithmetic.jl")

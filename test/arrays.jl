@@ -8,7 +8,7 @@ import Distributions
 using StableRNGs
 import Random
 using Missings
-using ScientificTypesBase
+using ScientificTypes
 
 import CategoricalDistributions: classes
 import CategoricalArrays.unwrap
