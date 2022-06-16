@@ -1,7 +1,7 @@
 module CategoricalDistributions
 
 import Distributions
-import ScientificTypesBase: Finite, Multiclass, OrderedFactor
+import ScientificTypes: Finite, Multiclass, OrderedFactor, scitype, DefaultConvention
 using OrderedCollections
 using CategoricalArrays
 import Missings
