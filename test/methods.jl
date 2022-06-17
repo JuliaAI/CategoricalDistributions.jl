@@ -7,7 +7,7 @@ import Distributions
 using StableRNGs
 import Random
 rng = StableRNG(123)
-using ScientificTypesBase
+using ScientificTypes
 
 import CategoricalDistributions: classes
 
