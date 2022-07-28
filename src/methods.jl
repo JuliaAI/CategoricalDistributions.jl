@@ -49,7 +49,7 @@ Ordered list of classes associated with non-zero probabilities.
 
     v = categorical(["yes", "maybe", "no", "yes"])
     d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    support(d) # CategoricalArray{String,1,UInt32}["maybe", "no"]
+    support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
 
 """
 Dist.support(d::UnivariateFiniteUnion) =
