@@ -5,7 +5,7 @@ using CategoricalDistributions
 using CategoricalArrays
 using StableRNGs
 using FillArrays
-using ScientificTypesBase
+using ScientificTypes
 import Random
 
 # coverage of constructor testing is expanded in the other test files
