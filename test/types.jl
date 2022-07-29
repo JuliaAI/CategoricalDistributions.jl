@@ -4,6 +4,7 @@ using Test
 using CategoricalDistributions
 using CategoricalArrays
 using StableRNGs
+using FillArrays
 using ScientificTypes
 import Random
 
@@ -54,6 +55,27 @@ end
                                    0.3 0.2],
                                   augment=true,
                                   pool=missing))
+
+    # Test construction from non `Array` `AbstractArray`
+    v = categorical(['x', 'x', 'y', 'x', 'z', 'w'])
+    probs_fillarray = FillArrays.Ones(100, 3)
+    probs_array = ones(100, 3)
+    
+    probs1_fillarray = FillArrays.Fill(0.2, 100, 2)
+    probs1_array = fill(0.2, 100, 2)
+
+    u_from_array = UnivariateFinite(['x', 'y', 'z'], probs_array, pool=v)
+    u_from_fillarray = UnivariateFinite(['x', 'y', 'z'], probs_fillarray, pool=v)
+
+    u1_from_array = UnivariateFinite(
+        ['x', 'y', 'z'], probs1_array, pool=v, augment=true
+    )
+    u1_from_fillarray = UnivariateFinite(
+        ['x', 'y', 'z'], probs1_fillarray, pool=v, augment=true
+    )
+    
+    @test u_from_array.prob_given_ref == u_from_fillarray.prob_given_ref
+    @test u1_from_array.prob_given_ref == u1_from_fillarray.prob_given_ref
 
     # autosupport:
     u = UnivariateFinite(probs, pool=missing, augment=true);

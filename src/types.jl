@@ -242,8 +242,8 @@ _check_augmentable(support, probs) = _check_probs_01(probs) &&
 
 ## AUGMENTING ARRAYS TO MAKE THEM PROBABILITY ARRAYS
 
-_unwrap(A::Array) = A
-_unwrap(A::Vector) = first(A)
+_unwrap(A::AbstractArray) = A
+_unwrap(A::AbstractVector) = first(A)
 
 isbinary(support) = length(support) == 2
 
@@ -276,6 +276,9 @@ function _augment_probs(::Val{true},
     return aug_probs
 end
 
+_array_or_scalar(x::Array) = x
+_array_or_scalar(x::AbstractArray) = copyto!(similar(Array{eltype(x)}, axes(x)), x) 
+_array_or_scalar(x) = x
 
 ## CONSTRUCTORS - FROM DICTIONARY
 
@@ -306,7 +309,7 @@ function UnivariateFinite(
     issubset(_support, parent_classes) ||
         error("Categorical elements are not from the same pool. ")
 
-    pairs = [int(c) => prob_given_class[c]
+    pairs = [int(c) => _array_or_scalar(prob_given_class[c])
                 for c in _support]
 
     probs1 = first(values(prob_given_class))
@@ -341,7 +344,7 @@ function UnivariateFinite(d::AbstractDict{V,<:Prob};
     _classes = classes(pool)
     issubset(raw_support, _classes) ||
         error("Specified support, $raw_support, not contained in "*
-              "specified pool, $(levels(classes)). ")
+              "specified pool, $(levels(_classes)). ")
     support = filter(_classes) do c
         c in raw_support
     end
