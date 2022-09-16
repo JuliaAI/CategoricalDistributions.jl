@@ -451,9 +451,11 @@ function _UnivariateFinite(support,
         issubset(support, _classes) ||
             error("Specified support, $support, not contained in "*
                   "specified pool, $(levels(classes)). ")
-        _support = filter(_classes) do c
-            c in support
-        end
+        idxs = getindex.(
+            Ref(CategoricalArrays.DataAPI.invrefpool(_classes)), 
+            support
+        )
+        _support = _classes[idxs] 
     end
 
     # calls core method:
