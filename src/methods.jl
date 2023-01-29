@@ -164,32 +164,16 @@ One can also do weighted fits:
 
 See also `classes`, `support`.
 """
-function Dist.pdf(
-    d::UnivariateFinite{S,V,R,P},
-    cv::CategoricalValue,
-) where {S,V,R,P}
-    return get(d.prob_given_ref, int(cv), zero(P))
-end
-Dist.pdf(d::UnivariateFinite{S,V}, c::V) where {S,V} = _pdf(d, c)
-Dist.pdf(::UnivariateFinite{S,V}, ::Missing) where {S,V} = missing
+Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
-# Avoid method ambiguity errors with Dist >= 0.24
-Dist.pdf(d::UnivariateFinite{S,V}, c::V) where {S,V<:Real} = _pdf(d, c)
-
-function _pdf(d::UnivariateFinite, c)
+function pdf(d::UnivariateFinite, c)
     _classes = classes(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)
-    class = pool[get(pool, c)]
-    return pdf(d, class)
+    return get(d.prob_given_ref, get(pool, c), zero(P))
 end
 
-Dist.logpdf(d::UnivariateFinite, cv::CategoricalValue) = log(pdf(d,cv))
-Dist.logpdf(d::UnivariateFinite{S,V}, c::V) where {S,V} = log(pdf(d, c))
-Dist.logpdf(::UnivariateFinite{S,V}, ::Missing) where {S,V} = missing
-
-# Avoid method ambiguity errors with Dist >= 0.24
-Dist.logpdf(d::UnivariateFinite{S,V}, c::V) where {S,V<:Real} = log(pdf(d, c))
+Dist.logpdf(d::UnivariateFinite, c) = log(pdf(d, c))
 
 function Dist.mode(d::UnivariateFinite)
     dic = d.prob_given_ref
