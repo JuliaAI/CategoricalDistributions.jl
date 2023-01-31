@@ -166,7 +166,7 @@ See also `classes`, `support`.
 """
 Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
-function pdf(d::UnivariateFinite, c)
+function Dist.pdf(d::UnivariateFinite, c)
     _classes = classes(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)
@@ -181,7 +181,7 @@ function Dist.mode(d::UnivariateFinite)
     max_prob = maximum(p)
     m = first(first(dic)) # mode, just some ref for now
 
-    # `maximum` of any iterable containing `NaN` would return `NaN` 
+    # `maximum` of any iterable containing `NaN` would return `NaN`
     # For this case the index `m` won't be updated in the loop below as relations
     # involving NaN as one of it's arguments always returns false
     # (e.g `==(NaN, NaN)` returns false)
