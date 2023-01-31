@@ -14,8 +14,11 @@ function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
     return UnivariateFinite(u.scitype, u.decoder, prob_given_ref)
 end
 
-Base.getindex(u::UniFinArr,
-              idx::CartesianIndex) = u[Tuple(idx)...]
+function Base.getindex(u::UniFinArr,
+              idx::CartesianIndex)
+    checkbounds(u, idx)
+    return u[Tuple(idx)...]
+end
 
 function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
                        I...) where {R,P,N}
