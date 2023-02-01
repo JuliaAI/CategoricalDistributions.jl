@@ -14,8 +14,7 @@ function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
     return UnivariateFinite(u.scitype, u.decoder, prob_given_ref)
 end
 
-function Base.getindex(u::UniFinArr,
-              idx::CartesianIndex)
+function Base.getindex(u::UniFinArr, idx::CartesianIndex)
     checkbounds(u, idx)
     return u[Tuple(idx)...]
 end
@@ -41,9 +40,9 @@ end
 # TODO: return an exception without throwing it:
 
 _err_incompatible_levels() = throw(DomainError(
-    "Cannot concatenate `UnivariateFiniteArray`s with "*
-    "different categorical levels (classes), "*
-    "or whose levels, when ordered, are not  "*
+    "Cannot concatenate `UnivariateFiniteArray`s with " *
+    "different categorical levels (classes), " *
+    "or whose levels, when ordered, are not  " *
     "consistently ordered. "))
 
 # terminology:
@@ -67,14 +66,12 @@ function Base.cat(us::UniFinArr{S,V,R,P,N}...;
     for i in 2:length(us)
         isordered(us[i]) == ordered || _err_incompatible_levels()
         if ordered
-            classes(us[i]) ==
-                _classes|| _err_incompatible_levels()
+            classes(us[i]) == _classes || _err_incompatible_levels()
         else
-            Set(classes(us[i])) ==
-                Set(_classes) || _err_incompatible_levels()
+            Set(classes(us[i])) == Set(_classes) || _err_incompatible_levels()
         end
-        support_with_duplicates =
-            vcat(support_with_duplicates, Dist.support(us[i]))
+        support_with_duplicates = vcat(support_with_duplicates,
+                                       Dist.support(us[i]))
     end
     _support = unique(support_with_duplicates) # no-longer categorical!
 
@@ -155,7 +152,7 @@ end
 Base.Broadcast.broadcasted(
     ::typeof(pdf),
     u::UniFinArr{S,V,R,P,N},
-    ::Missing) where {S,V,R,P,N} = Missings.missings(P, length(u))
+    ::Missing) where {S,V,R,P,N} = Missings.missings(P, size(u))
 
 # pdf.(u, v)
 function Base.Broadcast.broadcasted(
