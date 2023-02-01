@@ -101,8 +101,10 @@ Base.hcat(us::UniFinArr...) = cat(us..., dims=2)
 for func in [:pdf, :logpdf]
     eval(quote
         function Distributions.$func(
-            u::AbstractArray{UnivariateFinite{S,V,R,P}, N},
-            C::AbstractVector) where {S,V,R,P,N}
+            u::AbstractArray{UnivariateFinite{S,V,R,P},N},
+            C::AbstractVector{<:Union{
+                V,
+                CategoricalValue{V,R}}}) where {S,V,R,P,N}
 
             ret = zeros(P, size(u)..., length(C))
             # note that we do not require C to use 1-base indexing
