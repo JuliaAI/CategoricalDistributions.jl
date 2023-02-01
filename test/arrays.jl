@@ -290,4 +290,69 @@ end
 
 end
 
+function ≅(x::T, y::T) where {T<:UnivariateFinite}
+    return x.decoder == y.decoder &&
+           x.prob_given_ref == y.prob_given_ref &&
+           x.scitype == y.scitype
+end
+
+@testset "CartesianIndex" begin
+    v = categorical(["a", "b"], ordered=true)
+    m = UnivariateFinite(v, rand(rng, 5, 2), augment=true)
+    @test m[1, 1] ≅ m[CartesianIndex(1, 1)] ≅ m[CartesianIndex(1, 1, 1)]
+    @test_throws BoundsError m[CartesianIndex(1)]
+    @test all(zip(Matrix(m), copy(m), m)) do (x, y, z)
+        return x ≅ y ≅ z
+    end
+    @test Matrix(m) isa Matrix
+    # TODO: probably it would be better for copy to keep it
+    #       UnivariateFiniteArray but it would be breaking
+    @test copy(m) isa Matrix
+    @test similar(m) isa Matrix
+end
+
+@testset "broadcasted pdf" begin
+    v = categorical(["a", "b"], ordered=true)
+    v2 = categorical(["a", "b"], ordered=true, levels=["b", "a"])
+    x = UnivariateFinite(v, rand(rng, 5), augment=true)
+    @test pdf.(x, v[1]) == pdf.(x, v2[1]) == pdf.(x, "a")
+    @test pdf.(x, v[2]) == pdf.(x, v2[2]) == pdf.(x, "b")
+
+    x = UnivariateFinite(v, rand(rng, 5, 2), augment=true)
+    @test size(pdf.(x, missing)) == (5, 2)
+
+    v3 = categorical(["a" "b"], ordered=true)
+    v4 = categorical(["a" "b"], ordered=true, levels=["b", "a"])
+    # note that v5 and v6 have the same shape and contents as v3 and v4
+    # just they are Matrix{Any} not CategoricalMatrix
+    v5 = Any[v3[1] v3[2]]
+    v6 = Any[v4[1] v4[2]]
+    x = UnivariateFinite(v, hcat([0.1, 0.2]), augment=true)
+
+    # these tests show that now we have corrected refpools
+    # but still there is an inconsistency in behavior
+    @test pdf.(x, v) == hcat([0.9, 0.2])
+    @test pdf.(x, v2) == hcat([0.9, 0.2])
+    @test pdf.(x, v3) == hcat([0.9, 0.2])
+    @test pdf.(x, v4) == hcat([0.9, 0.2])
+    @test pdf.(x, v5) == [0.9 0.1; 0.8 0.2]
+    @test pdf.(x, v6) == [0.9 0.1; 0.8 0.2]
+end
+
+@testset "pdf with various types" begin
+    v = categorical(["a", "b"], ordered=true)
+    a = view("a", 1:1) # quite common case when splitting strings
+    b = view("b", 1:1)
+    x = UnivariateFinite(v, [0.1, 0.2, 0.3], augment=true)
+    @test pdf.(x, a) == pdf.(x, "a") == pdf.(x, v[1])
+    @test logpdf.(x, a) == logpdf.(x, "a") == logpdf.(x, v[1])
+    @test pdf(x, [a, b]) == pdf(x, ["a", "b"]) == pdf(x, v)
+    @test logpdf(x, [a, b]) == logpdf(x, ["a", "b"]) == logpdf(x, v)
+
+    x = UnivariateFinite(v, 0.1, augment=true)
+    @test pdf.(x, a) == pdf.(x, "a") == pdf.(x, v[1]) == 0.9
+    @test logpdf.(x, a) == logpdf.(x, "a") == logpdf.(x, v[1]) == log(0.9)
+    @test pdf(x, a) == pdf(x, "a") == pdf(x, v[1]) == 0.9
+    @test logpdf(x, a) == logpdf(x, "a") == logpdf(x, v[1]) == log(0.9)
+end
 true
