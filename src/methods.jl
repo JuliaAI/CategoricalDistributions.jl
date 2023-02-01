@@ -166,7 +166,7 @@ See also `classes`, `support`.
 """
 Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
-function Dist.pdf(d::UnivariateFinite, c)
+function Dist.pdf(d::UnivariateFinite{S,V,R,P}, c) where {S,V,R,P}
     _classes = classes(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)

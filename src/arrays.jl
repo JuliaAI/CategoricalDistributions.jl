@@ -168,14 +168,14 @@ function Base.Broadcast.broadcasted(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
 
-    v_loc_flat = [(ismissing(x) ? missing : findfirst(x, classes(u)), i)
+    v_loc_flat = [(ismissing(x) ? missing : findfirst(==(x), classes(u)), i)
                   for (i, x) in enumerate(v)]
     any(isequal(0), v_loc_flat) && throw(err_missing_class(cv))
 
     getter((cv_loc, i), dtype) =
         _getindex(get(u.prob_given_ref, cv_loc, nothing), i, dtype)
     getter(::Tuple{Missing,Any}, dtype) = missing
-    ret_flat = getter.(v_flat, P)
+    ret_flat = getter.(v_loc_flat, P)
     return reshape(ret_flat, size(u))
 end
 
@@ -274,7 +274,7 @@ const ERR_EMPTY_UNIVARIATE_FINITE = ArgumentError(
     "No `UnivariateFinite` object found from which to extract classes. ")
 
 function classes(yhat::AbstractArray{<:Union{Missing,UnivariateFinite}})
-    i = findfirst(x->!ismissing(x), yhat)
+    i = findfirst(!ismissing, yhat)
     i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
     return classes(yhat[i])
 end
