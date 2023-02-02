@@ -1,7 +1,7 @@
 # ## ARITHMETIC
 
 const ERR_DIFFERENT_SAMPLE_SPACES = ArgumentError(
-    "Adding two `UnivariateFinite` objects whose "*
+    "Adding two `UnivariateFinite` objects whose " *
     "sample spaces have different labellings is not allowed. ")
 
 import Base: +, *, /, -

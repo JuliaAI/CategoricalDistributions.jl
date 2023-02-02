@@ -164,32 +164,16 @@ One can also do weighted fits:
 
 See also `classes`, `support`.
 """
-function Dist.pdf(
-    d::UnivariateFinite{S,V,R,P},
-    cv::CategoricalValue,
-) where {S,V,R,P}
-    return get(d.prob_given_ref, int(cv), zero(P))
-end
-Dist.pdf(d::UnivariateFinite{S,V}, c::V) where {S,V} = _pdf(d, c)
-Dist.pdf(::UnivariateFinite{S,V}, ::Missing) where {S,V} = missing
+Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
-# Avoid method ambiguity errors with Dist >= 0.24
-Dist.pdf(d::UnivariateFinite{S,V}, c::V) where {S,V<:Real} = _pdf(d, c)
-
-function _pdf(d::UnivariateFinite, c)
+function Dist.pdf(d::UnivariateFinite{S,V,R,P}, c) where {S,V,R,P}
     _classes = classes(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)
-    class = pool[get(pool, c)]
-    return pdf(d, class)
+    return get(d.prob_given_ref, get(pool, c), zero(P))
 end
 
-Dist.logpdf(d::UnivariateFinite, cv::CategoricalValue) = log(pdf(d,cv))
-Dist.logpdf(d::UnivariateFinite{S,V}, c::V) where {S,V} = log(pdf(d, c))
-Dist.logpdf(::UnivariateFinite{S,V}, ::Missing) where {S,V} = missing
-
-# Avoid method ambiguity errors with Dist >= 0.24
-Dist.logpdf(d::UnivariateFinite{S,V}, c::V) where {S,V<:Real} = log(pdf(d, c))
+Dist.logpdf(d::UnivariateFinite, c) = log(pdf(d, c))
 
 function Dist.mode(d::UnivariateFinite)
     dic = d.prob_given_ref
@@ -197,7 +181,7 @@ function Dist.mode(d::UnivariateFinite)
     max_prob = maximum(p)
     m = first(first(dic)) # mode, just some ref for now
 
-    # `maximum` of any iterable containing `NaN` would return `NaN` 
+    # `maximum` of any iterable containing `NaN` would return `NaN`
     # For this case the index `m` won't be updated in the loop below as relations
     # involving NaN as one of it's arguments always returns false
     # (e.g `==(NaN, NaN)` returns false)
