@@ -9,6 +9,12 @@ rng = StableRNGs.StableRNG(123)
 
 import CategoricalDistributions: classes, decoder, int
 
+ambiguities_vec = Test.detect_ambiguities(CategoricalDistributions,
+                                          recursive=true)
+if !isempty(ambiguities_vec)
+    @warn "$(length(ambiguities_vec)) method ambiguities detected"
+end
+
 @testset "utilities" begin
      @test include("utilities.jl")
 end
