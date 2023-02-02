@@ -288,6 +288,26 @@ end
                  classes(u2[1:1]))
 end
 
+function ≅(x::T, y::T) where {T<:UnivariateFinite}
+    return x.decoder == y.decoder &&
+           x.prob_given_ref == y.prob_given_ref &&
+           x.scitype == y.scitype
+end
+
+function ≅(x::AbstractArray, y::AbstractArray)
+    return all((≅).(x, y))
+end
+
+@testset "indexing of UnivariateFininiteArray (see issue #43)" begin
+    u = UnivariateFinite(['x', 'z'], rand(2, 3, 2), pool=missing, ordered=true)
+    v = u[1:2]
+    @test v isa UnivariateFiniteArray
+    @test v ≅ u[1:2, 1] ≅ u[[1,2], 1]
+    w = u[2]
+    @test w isa UnivariateFinite
+    @test w ≅ v[2]
+end
+
 end
 
 true
