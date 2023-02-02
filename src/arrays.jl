@@ -4,28 +4,54 @@ const UniFinArr = UnivariateFiniteArray
 
 Base.size(u::UniFinArr, args...) =
     size(first(values(u.prob_given_ref)), args...)
-
-function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
-                       i::Integer...) where {R,P,N}
-    prob_given_ref = LittleDict{R,P}()
-    for ref in keys(u.prob_given_ref)
-        prob_given_ref[ref] = getindex(u.prob_given_ref[ref], i...)
+    
+function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
+    # It's faster to generate `Array`s of `refs` and indexed `ref_probs`
+    # and pass them to the `LittleDict` constructor.
+    # The first element of `u.prob_given_ref` is used to get the dimensions
+    # for allocating these arrays.
+    u_dict = u.prob_given_ref
+    a, rest = Iterators.peel(u_dict)
+    # `a` is of the form `key => value`. 
+    a_ref, a_prob = first(a), getindex(last(a), i...)
+    
+    # Preallocate Arrays using the key and value of the first 
+    # element (i.e `a`) of `u_dict`. 
+    n_refs = length(u_dict)
+    refs = Vector{R}(undef, n_refs)
+    if a_prob isa AbstractArray
+        ref_probs = Vector{Array{P, ndims(a_prob)}}(undef, n_refs)
+        unf_constructor = UniFinArr
+    else
+        ref_probs = Vector{P}(undef, n_refs)
+        unf_constructor = UnivariateFinite
     end
-    return UnivariateFinite(u.scitype, u.decoder, prob_given_ref)
+    
+    # Fill in the first elements
+    # Both `refs` and `ref_probs` are both of type `Vector` and hence support 
+    # linear indexing with index starting at `1`
+    refs[1] = a_ref
+    ref_probs[1] = a_prob
+
+    # Fill in the rest
+    iter = 2
+    for (ref, ref_prob) in rest
+        refs[iter] = ref
+        ref_probs[iter] = getindex(ref_prob, i...) 
+        iter += 1
+    end
+
+    # `keytype(prob_given_ref)` is always same as `keytype(u_dict)`. 
+    # But `ndims(valtype(prob_given_ref))` might not be the same 
+    # as `ndims(valtype(u_dict))`.
+    prob_given_ref = LittleDict{R, eltype(ref_probs)}(refs, ref_probs)
+    
+    return unf_constructor(u.scitype, u.decoder, prob_given_ref)
 end
 
 function Base.getindex(u::UniFinArr, idx::CartesianIndex)
     checkbounds(u, idx)
     return u[Tuple(idx)...]
-end
-
-function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
-                       I...) where {R,P,N}
-    prob_given_ref = LittleDict{R,Array{P,N}}()
-    for ref in keys(u.prob_given_ref)
-        prob_given_ref[ref] = getindex(u.prob_given_ref[ref], I...)
-    end
-    return UniFinArr(u.scitype, u.decoder, prob_given_ref)
 end
 
 function Base.setindex!(u::UniFinArr{S,V,R,P,N},
