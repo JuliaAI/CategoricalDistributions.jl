@@ -196,18 +196,18 @@ function Base.Broadcast.broadcasted(
     _classes = classes(u)
     _classes_pool = CategoricalArrays.pool(_classes)
     T = eltype(v) >: Missing ? Missing : Union{}
-    v_loc_flat = Vector{Union{Int, T}}(undef, length(v))
+    v_loc_flat = Vector{Tuple{Union{R, T}, Int}}(undef, length(v))
     
     
     for (i, x) in enumerate(v)
-        v_loc_flat_i = ismissing(x) ? missing : get(_classes_pool, x, zero(R))
-        isequal(v_loc_flat_i, 0) && throw(err_missing_class(x))
-        v_loc_flat[i] = v_loc_flat_i
+        cv_ref = ismissing(x) ? missing : get(_classes_pool, x, zero(R))
+        isequal(cv_ref, 0) && throw(err_missing_class(x))
+        v_loc_flat[i] = (cv_ref, i)
     end
 
-    getter(cv_loc) =
-        _getindex(get(u.prob_given_ref, _classes[cv_loc], zero(P)), cv_loc)
-    getter(::Missing) = missing
+    getter((cv_ref, i)) =
+        _getindex(get(u.prob_given_ref, cv_ref, zero(P)), i)
+    getter(::Tuple{Missing,Any}) = missing
     ret_flat = getter.(v_loc_flat)
     return reshape(ret_flat, size(u))
 end
