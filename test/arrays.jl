@@ -166,6 +166,13 @@ _skip(v) = collect(skipmissing(v))
         @test _skip(broadcast(logpdf, u, unwrap.(v))) ==
                       _skip([logpdf(u[i], v[i]) for i in 1:length(u)])
     end
+
+    ## Check that the appropriate errors are thrown
+    v1 = [v0[1:end-1];"strange_level"]
+    v2 = [v0...;rand(rng, v0)] #length(u) !== length(v2)
+    @test_throws DimensionMismatch broadcast(pdf, u, v2)
+    @test_throws DomainError broadcast(pdf, u, v1)
+
 end
 
 @testset "broadcasting: check indexing in `getter((cv, i), dtype)` see PR#375" begin
