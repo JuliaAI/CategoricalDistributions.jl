@@ -171,10 +171,12 @@ _skip(v) = collect(skipmissing(v))
     end
 
     ## Check that the appropriate errors are thrown
-    v1 = categorical([v0[1:end-1];"strange_level"])
+    v1 = categorical([v0[1:end-1]...;"strange_level"])
     v2 = [v0...;rand(rng, v0)] #length(u) !== length(v2)
+    v3 = categorical([vm[end:-1:begin+1]...;"strange_level"])
     @test_throws DimensionMismatch broadcast(pdf, u, v2)
     @test_throws DomainError broadcast(pdf, u, v1)
+    @test_throws DomainError broadcast(pdf, u, v3)
 
 end
 
