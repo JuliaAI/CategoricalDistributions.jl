@@ -149,6 +149,9 @@ end
     u2 = UnivariateFinite(v[1:2], probs, augment=true)
     @test pdf.(u2, v[3]) == zeros(3)
     @test isequal(logpdf.(u2, v[3]), log.(zeros(3)))
+
+    ## Check that the appropriate errors are thrown
+    @test_throws DomainError pdf.(u,"strange_level")
 end
 
 _skip(v) = collect(skipmissing(v))
@@ -166,9 +169,18 @@ _skip(v) = collect(skipmissing(v))
         @test _skip(broadcast(logpdf, u, unwrap.(v))) ==
                       _skip([logpdf(u[i], v[i]) for i in 1:length(u)])
     end
+
+    ## Check that the appropriate errors are thrown
+    v1 = categorical([v0[1:end-1]...;"strange_level"])
+    v2 = [v0...;rand(rng, v0)] #length(u) !== length(v2)
+    v3 = categorical([vm[end:-1:begin+1]...;"strange_level"])
+    @test_throws DimensionMismatch broadcast(pdf, u, v2)
+    @test_throws DomainError broadcast(pdf, u, v1)
+    @test_throws DomainError broadcast(pdf, u, v3)
+
 end
 
-@testset "broadcasting: check indexing in `getter((cv, i), dtype)` see PR#375" begin
+@testset "broadcasting: check indexing in `getter((cv_ref, i))` see PR#375 from MLJBase" begin
     c  = categorical([0,1,1])
     d = UnivariateFinite(c[1:1], [1 1 1]')
     v = categorical([0,1,1,1])
@@ -176,8 +188,8 @@ end
 end
 
 @testset "_getindex" begin
-   @test CategoricalDistributions._getindex(collect(1:4), 2, Int64) == 2
-   @test CategoricalDistributions._getindex(nothing, 2, Int64) == zero(Int64)
+   @test CategoricalDistributions._getindex(collect(1:4), 2) == 2
+   @test CategoricalDistributions._getindex(0, 2) === 0
 end
 
 @testset "broadcasting mode" begin

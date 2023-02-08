@@ -151,10 +151,10 @@ end
 
 # dummy function
 # returns `x[i]` for `Array` inputs `x`
-# For non-Array inputs returns `zero(dtype)`
+# For non-Array inputs returns the input
 #This avoids using an if statement
-_getindex(x::Array, i, dtype)=x[i]
-_getindex(::Nothing, i, dtype) = zero(dtype)
+_getindex(x::Array, i) = x[i]
+_getindex(x, i) = x
 
 # pdf.(u, cv)
 function Base.Broadcast.broadcasted(
@@ -164,15 +164,16 @@ function Base.Broadcast.broadcasted(
 
     # we assume that we compare categorical values by their unwrapped value
     # and pick the index of this value from classes(u)
-    cv_loc = findfirst(==(cv), classes(u))
-    cv_loc == 0 && throw(err_missing_class(cv))
+    _classes = classes(u)
+    cv_loc = get(CategoricalArrays.pool(_classes), cv, zero(R))
+    isequal(cv_loc, 0) && throw(err_missing_class(cv))
 
     f() = zeros(P, size(u)) #default caller function
 
     return Base.Broadcast.Broadcasted(
         identity,
         (get(f, u.prob_given_ref, cv_loc),)
-        )
+    )
 end
 
 Base.Broadcast.broadcasted(
@@ -191,15 +192,23 @@ function Base.Broadcast.broadcasted(
     length(u) == length(v) ||throw(DimensionMismatch(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
+    
+    _classes = classes(u)
+    _classes_pool = CategoricalArrays.pool(_classes)
+    T = eltype(v) >: Missing ? Missing : Union{}
+    v_loc_flat = Vector{Tuple{Union{R, T}, Int}}(undef, length(v))
+    
+    
+    for (i, x) in enumerate(v)
+        cv_ref = ismissing(x) ? missing : get(_classes_pool, x, zero(R))
+        isequal(cv_ref, 0) && throw(err_missing_class(x))
+        v_loc_flat[i] = (cv_ref, i)
+    end
 
-    v_loc_flat = [(ismissing(x) ? missing : findfirst(==(x), classes(u)), i)
-                  for (i, x) in enumerate(v)]
-    any(isequal(0), v_loc_flat) && throw(err_missing_class(cv))
-
-    getter((cv_loc, i), dtype) =
-        _getindex(get(u.prob_given_ref, cv_loc, nothing), i, dtype)
-    getter(::Tuple{Missing,Any}, dtype) = missing
-    ret_flat = getter.(v_loc_flat, P)
+    getter((cv_ref, i)) =
+        _getindex(get(u.prob_given_ref, cv_ref, zero(P)), i)
+    getter(::Tuple{Missing,Any}) = missing
+    ret_flat = getter.(v_loc_flat)
     return reshape(ret_flat, size(u))
 end
 
