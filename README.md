@@ -33,6 +33,7 @@ this package is the class pool of a `CategoricalArray`:
 using CategoricalDistributions
 using CategoricalArrays
 import Distributions
+import UnicodePlots # for optional pretty display
 data = ["no", "yes", "no", "maybe", "maybe", "no",
        "maybe", "no", "maybe"] |> categorical
 julia> d = Distributions.fit(UnivariateFinite, data)
