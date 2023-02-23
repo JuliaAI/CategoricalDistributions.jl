@@ -82,23 +82,6 @@ end
 Base.show(io::IO, mime::MIME"text/plain",
           d::UnivariateFinite) = show(io, d)
 
-# in common case of `Real` probabilities we can do a pretty bar plot:
-function Base.show(io::IO, mime::MIME"text/plain",
-                   d::UnivariateFinite{<:Finite{K},V,R,P}) where {K,V,R,P<:Real}
-    show_bars = false
-    if K <= MAX_NUM_LEVELS_TO_SHOW_BARS &&
-        all(>=(0), values(d.prob_given_ref))
-        show_bars = true
-    end
-    show_bars || return show(io, d)
-    s = support(d)
-    x = string.(CategoricalArrays.DataAPI.unwrap.(s))
-    y = pdf.(d, s)
-    S = d.scitype
-    plt = barplot(x, y, title="UnivariateFinite{$S}")
-    show(io, mime, plt)
-end
-
 show_prefix(u::UnivariateFiniteArray{S,V,R,P,1}) where {S,V,R,P} =
     "$(length(u))-element"
 show_prefix(u::UnivariateFiniteArray) = join(size(u),'x')

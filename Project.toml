@@ -12,6 +12,12 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ScientificTypes = "321657f4-b219-11e9-178b-2701a2544e81"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
+[weakdeps]
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
+
+[extensions]
+UnivariateFiniteDisplayExt = "UnicodePlots"
+
 [compat]
 CategoricalArrays = "0.9, 0.10"
 Distributions = "0.25"
