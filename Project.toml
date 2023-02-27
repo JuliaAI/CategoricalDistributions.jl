@@ -12,6 +12,12 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ScientificTypes = "321657f4-b219-11e9-178b-2701a2544e81"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
+[weakdeps]
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
+
+[extensions]
+UnivariateFiniteDisplayExt = "UnicodePlots"
+
 [compat]
 CategoricalArrays = "0.9, 0.10"
 Distributions = "0.25"
@@ -26,6 +32,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
 [targets]
-test = ["Random", "StableRNGs", "Test", "FillArrays"]
+test = ["FillArrays", "Random", "StableRNGs", "Test", "UnicodePlots"]
