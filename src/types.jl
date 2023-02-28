@@ -298,7 +298,12 @@ function UnivariateFinite(
 
     # `LittleDict`s preserve order of keys, which we need for rand():
     _support  = keys(prob_given_class) |> collect |> sort
-
+    isempty(_support) && throw(
+        ArgumentError(
+            "Cannot create `UnivariateFinite` and `UnivariateFininiteArray`"*
+            " objects with no classes/support."
+        )
+    )
     # retrieve decoder and classes from first key:
     class1         = first(_support)
     parent_decoder = decoder(class1)

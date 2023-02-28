@@ -1,7 +1,7 @@
 # ## ARITHMETIC
 
 const ERR_DIFFERENT_SAMPLE_SPACES = ArgumentError(
-    "Adding two `UnivariateFinite` objects whose "*
+    "Adding two `UnivariateFinite` objects whose " *
     "sample spaces have different labellings is not allowed. ")
 
 import Base: +, *, /, -
@@ -33,10 +33,6 @@ function -(d1::U, d2::U) where U <: SingletonOrArray
     return UnivariateFinite(L, pdf_matrix(d1, L) - pdf_matrix(d2, L))
 end
 
-# It seems that the restriction `x::Number` below (applying only to the
-# array case) is unavoidable because of a method ambiguity with
-# `Base.*(::AbstractArray, ::Number)`.
-
 function _times(d, x, T)
     S = d.scitype
     decoder = d.decoder
@@ -46,10 +42,10 @@ function _times(d, x, T)
     end
     return T(d.scitype, decoder, prob_given_ref)
 end
-*(d::UnivariateFinite, x) = _times(d, x, UnivariateFinite)
+*(d::UnivariateFinite, x::Number) = _times(d, x, UnivariateFinite)
 *(d::UnivariateFiniteArray, x::Number) = _times(d, x, UnivariateFiniteArray)
 
-*(x, d::UnivariateFinite) = d*x
+*(x::Number, d::UnivariateFinite) = d*x
 *(x::Number, d::UnivariateFiniteArray) = d*x
-/(d::UnivariateFinite, x) = d*inv(x)
+/(d::UnivariateFinite, x::Number) = d*inv(x)
 /(d::UnivariateFiniteArray, x::Number) = d*inv(x)

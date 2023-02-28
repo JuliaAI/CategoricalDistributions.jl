@@ -268,6 +268,20 @@ end
     # @test v ≈ v_close
 end
 
+function displays_okay(v) # `v` a "probability" vector
+    d = UnivariateFinite(v, pool=missing);
+    str = sprint(show, "text/plain", d)
+    contains(str, "UnivariateFinite{Multiclass{$(length(v))}}")
+end
+
+@testset "display" begin
+    @test displays_okay([0.3, 0.7])
+    @test displays_okay([5 + 3im, 4 - 7im])
+    using UnicodePlots
+    @test displays_okay([0.3, 0.7])
+    @test displays_okay([5 + 3im, 4 - 7im])
+end
+
 end # module
 
 true

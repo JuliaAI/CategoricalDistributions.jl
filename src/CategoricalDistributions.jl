@@ -13,10 +13,8 @@ using OrderedCollections
 using CategoricalArrays
 import Missings
 using Random
-using UnicodePlots
 
 const Dist = Distributions
-const MAX_NUM_LEVELS_TO_SHOW_BARS = 12
 
 import Distributions: pdf, logpdf, support, mode
 
@@ -34,5 +32,10 @@ export pdf, logpdf, support, mode
 
 # re-export from ScientificTypesBase:
 export Multiclass, OrderedFactor
+
+# for julia < 1.9
+if !isdefined(Base, :get_extension)
+  include("../ext/UnivariateFiniteDisplayExt.jl")
+end
 
 end

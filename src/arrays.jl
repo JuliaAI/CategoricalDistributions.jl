@@ -4,23 +4,54 @@ const UniFinArr = UnivariateFiniteArray
 
 Base.size(u::UniFinArr, args...) =
     size(first(values(u.prob_given_ref)), args...)
-
-function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
-                       i::Integer...) where {R,P,N}
-    prob_given_ref = LittleDict{R,P}()
-    for ref in keys(u.prob_given_ref)
-        prob_given_ref[ref] = getindex(u.prob_given_ref[ref], i...)
+    
+function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
+    # It's faster to generate `Array`s of `refs` and indexed `ref_probs`
+    # and pass them to the `LittleDict` constructor.
+    # The first element of `u.prob_given_ref` is used to get the dimensions
+    # for allocating these arrays.
+    u_dict = u.prob_given_ref
+    a, rest = Iterators.peel(u_dict)
+    # `a` is of the form `key => value`. 
+    a_ref, a_prob = first(a), getindex(last(a), i...)
+    
+    # Preallocate Arrays using the key and value of the first 
+    # element (i.e `a`) of `u_dict`. 
+    n_refs = length(u_dict)
+    refs = Vector{R}(undef, n_refs)
+    if a_prob isa AbstractArray
+        ref_probs = Vector{Array{P, ndims(a_prob)}}(undef, n_refs)
+        unf_constructor = UniFinArr
+    else
+        ref_probs = Vector{P}(undef, n_refs)
+        unf_constructor = UnivariateFinite
     end
-    return UnivariateFinite(u.scitype, u.decoder, prob_given_ref)
+    
+    # Fill in the first elements
+    # Both `refs` and `ref_probs` are both of type `Vector` and hence support 
+    # linear indexing with index starting at `1`
+    refs[1] = a_ref
+    ref_probs[1] = a_prob
+
+    # Fill in the rest
+    iter = 2
+    for (ref, ref_prob) in rest
+        refs[iter] = ref
+        ref_probs[iter] = getindex(ref_prob, i...) 
+        iter += 1
+    end
+
+    # `keytype(prob_given_ref)` is always same as `keytype(u_dict)`. 
+    # But `ndims(valtype(prob_given_ref))` might not be the same 
+    # as `ndims(valtype(u_dict))`.
+    prob_given_ref = LittleDict{R, eltype(ref_probs)}(refs, ref_probs)
+    
+    return unf_constructor(u.scitype, u.decoder, prob_given_ref)
 end
 
-function Base.getindex(u::UniFinArr{<:Any,<:Any,R,P,N},
-                       I...) where {R,P,N}
-    prob_given_ref = LittleDict{R,Array{P,N}}()
-    for ref in keys(u.prob_given_ref)
-        prob_given_ref[ref] = getindex(u.prob_given_ref[ref], I...)
-    end
-    return UniFinArr(u.scitype, u.decoder, prob_given_ref)
+function Base.getindex(u::UniFinArr, idx::CartesianIndex)
+    checkbounds(u, idx)
+    return u[Tuple(idx)...]
 end
 
 function Base.setindex!(u::UniFinArr{S,V,R,P,N},
@@ -35,9 +66,9 @@ end
 # TODO: return an exception without throwing it:
 
 _err_incompatible_levels() = throw(DomainError(
-    "Cannot concatenate `UnivariateFiniteArray`s with "*
-    "different categorical levels (classes), "*
-    "or whose levels, when ordered, are not  "*
+    "Cannot concatenate `UnivariateFiniteArray`s with " *
+    "different categorical levels (classes), " *
+    "or whose levels, when ordered, are not  " *
     "consistently ordered. "))
 
 # terminology:
@@ -61,14 +92,12 @@ function Base.cat(us::UniFinArr{S,V,R,P,N}...;
     for i in 2:length(us)
         isordered(us[i]) == ordered || _err_incompatible_levels()
         if ordered
-            classes(us[i]) ==
-                _classes|| _err_incompatible_levels()
+            classes(us[i]) == _classes || _err_incompatible_levels()
         else
-            Set(classes(us[i])) ==
-                Set(_classes) || _err_incompatible_levels()
+            Set(classes(us[i])) == Set(_classes) || _err_incompatible_levels()
         end
-        support_with_duplicates =
-            vcat(support_with_duplicates, Dist.support(us[i]))
+        support_with_duplicates = vcat(support_with_duplicates,
+                                       Dist.support(us[i]))
     end
     _support = unique(support_with_duplicates) # no-longer categorical!
 
@@ -99,14 +128,12 @@ for func in [:pdf, :logpdf]
     eval(quote
         function Distributions.$func(
             u::AbstractArray{UnivariateFinite{S,V,R,P},N},
-            C::AbstractVector{<:Union{
-                V,
-                CategoricalValue{V,R}}}) where {S,V,R,P,N}
+            C::AbstractVector) where {S,V,R,P,N}
 
-            #ret = Array{P,N+1}(undef, size(u)..., length(C))
             ret = zeros(P, size(u)..., length(C))
-            for i in eachindex(C)
-                ret[fill(:,N)...,i] .= broadcast($func, u, C[i])
+            # note that we do not require C to use 1-base indexing
+            for (i, c) in enumerate(C)
+                ret[fill(:,N)..., i] .= broadcast($func, u, c)
             end
             return ret
         end
@@ -124,10 +151,10 @@ end
 
 # dummy function
 # returns `x[i]` for `Array` inputs `x`
-# For non-Array inputs returns `zero(dtype)`
+# For non-Array inputs returns the input
 #This avoids using an if statement
-_getindex(x::Array,i, dtype)=x[i]
-_getindex(::Nothing, i, dtype) = zero(dtype)
+_getindex(x::Array, i) = x[i]
+_getindex(x, i) = x
 
 # pdf.(u, cv)
 function Base.Broadcast.broadcasted(
@@ -135,19 +162,24 @@ function Base.Broadcast.broadcasted(
     u::UniFinArr{S,V,R,P,N},
     cv::CategoricalValue) where {S,V,R,P,N}
 
-    cv in classes(u) || throw(err_missing_class(cv))
+    # we assume that we compare categorical values by their unwrapped value
+    # and pick the index of this value from classes(u)
+    _classes = classes(u)
+    cv_loc = get(CategoricalArrays.pool(_classes), cv, zero(R))
+    isequal(cv_loc, 0) && throw(err_missing_class(cv))
 
     f() = zeros(P, size(u)) #default caller function
 
     return Base.Broadcast.Broadcasted(
         identity,
-        (get(f, u.prob_given_ref, int(cv)),)
-        )
+        (get(f, u.prob_given_ref, cv_loc),)
+    )
 end
+
 Base.Broadcast.broadcasted(
     ::typeof(pdf),
     u::UniFinArr{S,V,R,P,N},
-    ::Missing) where {S,V,R,P,N} = Missings.missings(P, length(u))
+    ::Missing) where {S,V,R,P,N} = Missings.missings(P, size(u))
 
 # pdf.(u, v)
 function Base.Broadcast.broadcasted(
@@ -160,17 +192,23 @@ function Base.Broadcast.broadcasted(
     length(u) == length(v) ||throw(DimensionMismatch(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
-    for cv in v
-        ismissing(cv) || cv in classes(u) || throw(err_missing_class(cv))
+    
+    _classes = classes(u)
+    _classes_pool = CategoricalArrays.pool(_classes)
+    T = eltype(v) >: Missing ? Missing : Union{}
+    v_loc_flat = Vector{Tuple{Union{R, T}, Int}}(undef, length(v))
+    
+    
+    for (i, x) in enumerate(v)
+        cv_ref = ismissing(x) ? missing : get(_classes_pool, x, zero(R))
+        isequal(cv_ref, 0) && throw(err_missing_class(x))
+        v_loc_flat[i] = (cv_ref, i)
     end
 
-    # will use linear indexing:
-    v_flat = ((v[i], i) for i in 1:length(v))
-
-    getter((cv, i), dtype) =
-        _getindex(get(u.prob_given_ref, int(cv), nothing), i, dtype)
-    getter(::Tuple{Missing,Any}, dtype) = missing
-    ret_flat = getter.(v_flat, P)
+    getter((cv_ref, i)) =
+        _getindex(get(u.prob_given_ref, cv_ref, zero(P)), i)
+    getter(::Tuple{Missing,Any}) = missing
+    ret_flat = getter.(v_loc_flat)
     return reshape(ret_flat, size(u))
 end
 
@@ -243,10 +281,10 @@ function Base.Broadcast.broadcasted(::typeof(mode),
     mode_flat = map(1:length(u)) do i
         max_prob = maximum(dic[ref][i] for ref in keys(dic))
         m = zero(R)
-        
-        # `maximum` of any iterable containing `NaN` would return `NaN` 
+
+        # `maximum` of any iterable containing `NaN` would return `NaN`
         # For this case the index `m` won't be updated in the loop as relations
-        # involving NaN as one of it's argument always returns false 
+        # involving NaN as one of it's argument always returns false
         # (e.g `==(NaN, NaN)` returns false)
         throw_nan_error_if_needed(max_prob)
         for ref in keys(dic)
@@ -269,9 +307,7 @@ const ERR_EMPTY_UNIVARIATE_FINITE = ArgumentError(
     "No `UnivariateFinite` object found from which to extract classes. ")
 
 function classes(yhat::AbstractArray{<:Union{Missing,UnivariateFinite}})
-    i = findfirst(x->!ismissing(x), yhat)
+    i = findfirst(!ismissing, yhat)
     i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
     return classes(yhat[i])
 end
-
-

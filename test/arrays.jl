@@ -149,6 +149,9 @@ end
     u2 = UnivariateFinite(v[1:2], probs, augment=true)
     @test pdf.(u2, v[3]) == zeros(3)
     @test isequal(logpdf.(u2, v[3]), log.(zeros(3)))
+
+    ## Check that the appropriate errors are thrown
+    @test_throws DomainError pdf.(u,"strange_level")
 end
 
 _skip(v) = collect(skipmissing(v))
@@ -166,9 +169,18 @@ _skip(v) = collect(skipmissing(v))
         @test _skip(broadcast(logpdf, u, unwrap.(v))) ==
                       _skip([logpdf(u[i], v[i]) for i in 1:length(u)])
     end
+
+    ## Check that the appropriate errors are thrown
+    v1 = categorical([v0[1:end-1]...;"strange_level"])
+    v2 = [v0...;rand(rng, v0)] #length(u) !== length(v2)
+    v3 = categorical([vm[end:-1:begin+1]...;"strange_level"])
+    @test_throws DimensionMismatch broadcast(pdf, u, v2)
+    @test_throws DomainError broadcast(pdf, u, v1)
+    @test_throws DomainError broadcast(pdf, u, v3)
+
 end
 
-@testset "broadcasting: check indexing in `getter((cv, i), dtype)` see PR#375" begin
+@testset "broadcasting: check indexing in `getter((cv_ref, i))` see PR#375 from MLJBase" begin
     c  = categorical([0,1,1])
     d = UnivariateFinite(c[1:1], [1 1 1]')
     v = categorical([0,1,1,1])
@@ -176,8 +188,8 @@ end
 end
 
 @testset "_getindex" begin
-   @test CategoricalDistributions._getindex(collect(1:4), 2, Int64) == 2
-   @test CategoricalDistributions._getindex(nothing, 2, Int64) == zero(Int64)
+   @test CategoricalDistributions._getindex(collect(1:4), 2) == 2
+   @test CategoricalDistributions._getindex(0, 2) === 0
 end
 
 @testset "broadcasting mode" begin
@@ -288,6 +300,91 @@ end
                  classes(u2[1:1]))
 end
 
+function ≅(x::T, y::T) where {T<:UnivariateFinite}
+    return x.decoder == y.decoder &&
+           x.prob_given_ref == y.prob_given_ref &&
+           x.scitype == y.scitype
 end
 
+function ≅(x::AbstractArray, y::AbstractArray)
+    return all((≅).(x, y))
+end
+
+@testset "indexing of UnivariateFininiteArray (see issue #43)" begin
+    u = UnivariateFinite(['x', 'z'], rand(2, 3, 2), pool=missing, ordered=true)
+    v = u[1:2]
+    @test v isa UnivariateFiniteArray
+    @test v ≅ u[1:2, 1] ≅ u[[1,2], 1]
+    w = u[2]
+    @test w isa UnivariateFinite
+    @test w ≅ v[2]
+end
+
+end
+
+function ≅(x::T, y::T) where {T<:UnivariateFinite}
+    return x.decoder == y.decoder &&
+           x.prob_given_ref == y.prob_given_ref &&
+           x.scitype == y.scitype
+end
+
+@testset "CartesianIndex" begin
+    v = categorical(["a", "b"], ordered=true)
+    m = UnivariateFinite(v, rand(rng, 5, 2), augment=true)
+    @test m[1, 1] ≅ m[CartesianIndex(1, 1)] ≅ m[CartesianIndex(1, 1, 1)]
+    @test_throws BoundsError m[CartesianIndex(1)]
+    @test all(zip(Matrix(m), copy(m), m)) do (x, y, z)
+        return x ≅ y ≅ z
+    end
+    @test Matrix(m) isa Matrix
+    # TODO: probably it would be better for copy to keep it
+    #       UnivariateFiniteArray but it would be breaking
+    @test copy(m) isa Matrix
+    @test similar(m) isa Matrix
+end
+
+@testset "broadcasted pdf" begin
+    v = categorical(["a", "b"], ordered=true)
+    v2 = categorical(["a", "b"], ordered=true, levels=["b", "a"])
+    x = UnivariateFinite(v, rand(rng, 5), augment=true)
+    @test pdf.(x, v[1]) == pdf.(x, v2[1]) == pdf.(x, "a")
+    @test pdf.(x, v[2]) == pdf.(x, v2[2]) == pdf.(x, "b")
+
+    x = UnivariateFinite(v, rand(rng, 5, 2), augment=true)
+    @test size(pdf.(x, missing)) == (5, 2)
+
+    v3 = categorical(["a" "b"], ordered=true)
+    v4 = categorical(["a" "b"], ordered=true, levels=["b", "a"])
+    # note that v5 and v6 have the same shape and contents as v3 and v4
+    # just they are Matrix{Any} not CategoricalMatrix
+    v5 = Any[v3[1] v3[2]]
+    v6 = Any[v4[1] v4[2]]
+    x = UnivariateFinite(v, hcat([0.1, 0.2]), augment=true)
+
+    # these tests show that now we have corrected refpools
+    # but still there is an inconsistency in behavior
+    @test pdf.(x, v) == hcat([0.9, 0.2])
+    @test pdf.(x, v2) == hcat([0.9, 0.2])
+    @test pdf.(x, v3) == hcat([0.9, 0.2])
+    @test pdf.(x, v4) == hcat([0.9, 0.2])
+    @test pdf.(x, v5) == [0.9 0.1; 0.8 0.2]
+    @test pdf.(x, v6) == [0.9 0.1; 0.8 0.2]
+end
+
+@testset "pdf with various types" begin
+    v = categorical(["a", "b"], ordered=true)
+    a = view("a", 1:1) # quite common case when splitting strings
+    b = view("b", 1:1)
+    x = UnivariateFinite(v, [0.1, 0.2, 0.3], augment=true)
+    @test pdf.(x, a) == pdf.(x, "a") == pdf.(x, v[1])
+    @test logpdf.(x, a) == logpdf.(x, "a") == logpdf.(x, v[1])
+    @test pdf(x, [a, b]) == pdf(x, ["a", "b"]) == pdf(x, v)
+    @test logpdf(x, [a, b]) == logpdf(x, ["a", "b"]) == logpdf(x, v)
+
+    x = UnivariateFinite(v, 0.1, augment=true)
+    @test pdf.(x, a) == pdf.(x, "a") == pdf.(x, v[1]) == 0.9
+    @test logpdf.(x, a) == logpdf.(x, "a") == logpdf.(x, v[1]) == log(0.9)
+    @test pdf(x, a) == pdf(x, "a") == pdf(x, v[1]) == 0.9
+    @test logpdf(x, a) == logpdf(x, "a") == logpdf(x, v[1]) == log(0.9)
+end
 true
