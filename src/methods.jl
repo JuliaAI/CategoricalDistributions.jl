@@ -120,7 +120,7 @@ end
 # TODO: It would be useful to define == as well.
 
 """
-    Dist.pdf(d::UnivariateFinite, x)
+    Distributions.pdf(d::UnivariateFinite, x)
 
 Probability of `d` at `x`.
 
