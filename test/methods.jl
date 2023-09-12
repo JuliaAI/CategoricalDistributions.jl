@@ -19,8 +19,10 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
 @testset "set 1" begin
 
     # ordered (OrderedFactor)
-    dict = Dict(s=>0.1, q=> 0.2, f=> 0.7)
+    dict = Dict(s=>0.1, q=>0.2, f=>0.7)
     d    = UnivariateFinite(dict)
+    dict_bimodal = Dict(a=>0.1, s=>0.1, q=>0.4, f=>0.4)
+    d_bimodal    = UnivariateFinite(dict_bimodal)
     @test classes(d) == [a, f, q, s]
     @test classes(d) == classes(s)
     @test levels(d) == levels(s)
@@ -45,6 +47,7 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     @test logpdf(d, 'f') ≈ log(0.7)
     @test isinf(logpdf(d, a))
     @test mode(d) == f
+    @test modes(d_bimodal) == [f, q]
 
     @test UnivariateFinite(support(d), [0.7, 0.2, 0.1]) ≈ d
 
@@ -72,7 +75,7 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     @test isapprox(freq[q]/N, ffreq[q]/N)
 
     # unordered (Multiclass):
-    dict = Dict(S=>0.1, Q=> 0.2, F=> 0.7)
+    dict = Dict(S=>0.1, Q=>0.2, F=>0.7)
     d    = UnivariateFinite(dict)
     @test classes(d) == [a, f, q, s]
     @test classes(d) == classes(s)
@@ -179,6 +182,20 @@ end
     # `mode` of `Univariate` objects containing `NaN` in probs.
     unf = UnivariateFinite([0.1, 0.2, NaN, 0.1, NaN], pool=missing)
     @test_throws DomainError mode(unf)
+end
+
+@testset "Univariate modes, bimodal" begin
+    v = categorical(1:101)
+    p = rand(rng,101)
+    p[24] = 2*maximum(p)
+    p[42] = p[24]
+    p = p/sum(p)
+    d = UnivariateFinite(v, p)
+    @test modes(d) == [24, 42]
+
+    # `mode` of `Univariate` objects containing `NaN` in probs.
+    unf = UnivariateFinite([0.1, 0.2, NaN, 0.1, NaN], pool=missing)
+    @test_throws DomainError modes(unf)
 end
 
 @testset "UnivariateFinite methods" begin

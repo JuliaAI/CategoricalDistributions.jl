@@ -82,7 +82,7 @@ Arrays of `UnivariateFinite` distributions are defined using the same
 constructor. Broadcasting methods, such as `pdf`, are optimized for
 such arrays:
 
-```
+```julia
 julia> v = UnivariateFinite(["no", "yes"], [0.1, 0.2, 0.3, 0.4], augment=true, pool=data)
 4-element UnivariateFiniteArray{Multiclass{3}, String, UInt32, Float64, 1}:
  UnivariateFinite{Multiclass{3}}(no=>0.9, yes=>0.1)
@@ -119,7 +119,6 @@ julia> pdf(v, L)
  0.0  0.6  0.4
 ```
 
-
 ## Measures over finite labeled sets
 
 There is, in fact, no enforcement that probabilities in a
@@ -127,7 +126,6 @@ There is, in fact, no enforcement that probabilities in a
 to a type `T` for which `zero(T)` is defined. In particular
 `UnivariateFinite` objects implement arbitrary non-negative, signed,
 or complex measures over a finite labeled set.
-
 
 ## What does this package provide?
 
@@ -144,7 +142,7 @@ or complex measures over a finite labeled set.
 - Implementations of `rand` for generating random samples of a
   `UnivariateFinite` distribution.
 
-- Implementations of the `pdf`, `logpdf` and `mode` methods of
+- Implementations of the `pdf`, `logpdf`, `mode` and `modes` methods of
   Distributions.jl, with efficient broadcasting over the new array
   type.
 

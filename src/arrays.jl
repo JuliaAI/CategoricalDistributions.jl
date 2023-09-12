@@ -271,7 +271,7 @@ Base.Broadcast.broadcasted(
     c::Missing) where {S,V,R,P,N} = Missings.missings(P, length(u))
 
 
-## PERFORMANT BROADCASTING OF mode:
+## PERFORMANT BROADCASTING OF mode(s):
 
 function Base.Broadcast.broadcasted(::typeof(mode),
                                     u::UniFinArr{S,V,R,P,N}) where {S,V,R,P,N}
@@ -298,6 +298,26 @@ function Base.Broadcast.broadcasted(::typeof(mode),
     return reshape(mode_flat, size(u))
 end
 
+function Base.Broadcast.broadcasted(::typeof(modes),
+                                    u::UniFinArr{S,V,R,P,N}) where {S,V,R,P,N}
+    dic = u.prob_given_ref
+
+    # using linear indexing:
+    mode_flat = map(1:length(u)) do i
+        max_prob = maximum(dic[ref][i] for ref in keys(dic))
+        M = R[]
+
+        # see comment for in broadcasted(::mode) above
+        throw_nan_error_if_needed(max_prob)
+        for ref in keys(dic)
+            if dic[ref][i] == max_prob
+                push!(M, ref)
+            end
+        end
+        return u.decoder(M)
+    end
+    return reshape(mode_flat, size(u))
+end
 
 ## EXTENSION OF CLASSES TO ARRAYS OF UNIVARIATE FINITE
 

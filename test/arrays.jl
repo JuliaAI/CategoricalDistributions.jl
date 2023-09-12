@@ -198,10 +198,10 @@ end
     probs = rand(rng, n)
     u = UnivariateFinite(probs, augment = true, pool=missing)
     supp = Distributions.support(u)
-    modes = mode.(u)
-    @test modes isa CategoricalArray
+    _modes = mode.(u)
+    @test _modes isa CategoricalArray
     expected = [ifelse(p > 0.5, supp[2], supp[1]) for p in probs]
-    @test all(modes .== expected)
+    @test all(_modes .== expected)
 
     # multiclass
     rng = StableRNG(554)
@@ -221,6 +221,47 @@ end
         pool=missing
     )
     @test_throws DomainError mode.(unf_arr)
+end
+
+@testset "broadcasting modes" begin
+    # binary
+    rng = StableRNG(668)
+    probs = rand(rng, n)
+    u = UnivariateFinite(probs, augment = true, pool=missing)
+    supp = Distributions.support(u)
+    _modes = modes.(u)
+    @test _modes isa Vector{<:CategoricalArray}
+    expected = [ifelse(p > 0.5, [supp[2]], [supp[1]]) for p in probs]
+    @test all(_modes .== expected)
+
+    # multiclass, bimodal
+    rng = StableRNG(554)
+    P   = rand(rng, n, c)
+    M, M_idx = findmax(P, dims=2)
+    M_idx = getindex.(M_idx, 2)
+    for i in axes(P,1)
+        m = M[i]
+        j = M_idx[i]
+        while j == M_idx[i]
+            j = rand(axes(P,2))
+        end
+        P[i,j] = m
+    end
+    P ./= sum(P, dims=2)
+    u   = UnivariateFinite(P, pool=missing)
+    expected = modes.([u...])
+    @test all(modes.(u) .== expected)
+
+    # `mode` broadcasting of `Univariate` objects containing `NaN` in probs.
+    unf_arr = UnivariateFinite(
+        [
+            0.1 0.2 NaN 0.1 NaN;
+            0.2 0.1 0.1 0.4 0.2;
+            0.3 NaN 0.2 NaN 0.3
+        ],
+        pool=missing
+    )
+    @test_throws DomainError modes.(unf_arr)
 end
 
 @testset "cat for UnivariateFiniteArray" begin
