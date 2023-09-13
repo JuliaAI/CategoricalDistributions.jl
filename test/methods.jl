@@ -9,7 +9,7 @@ import Random
 rng = StableRNG(123)
 using ScientificTypes
 
-import CategoricalDistributions: classes
+import CategoricalDistributions: classes, ERR_NAN_FOUND
 
 v = categorical(collect("asqfasqffqsaaaa"), ordered=true)
 V = categorical(collect("asqfasqffqsaaaa"))
@@ -181,7 +181,7 @@ end
 
     # `mode` of `Univariate` objects containing `NaN` in probs.
     unf = UnivariateFinite([0.1, 0.2, NaN, 0.1, NaN], pool=missing)
-    @test_throws DomainError mode(unf)
+    @test_throws ERR_NAN_FOUND mode(unf)
 end
 
 @testset "Univariate modes, bimodal" begin
@@ -195,7 +195,7 @@ end
 
     # `mode` of `Univariate` objects containing `NaN` in probs.
     unf = UnivariateFinite([0.1, 0.2, NaN, 0.1, NaN], pool=missing)
-    @test_throws DomainError modes(unf)
+    @test_throws ERR_NAN_FOUND modes(unf)
 end
 
 @testset "UnivariateFinite methods" begin

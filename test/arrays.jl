@@ -10,7 +10,7 @@ import Random
 using Missings
 using ScientificTypes
 
-import CategoricalDistributions: classes
+import CategoricalDistributions: classes, ERR_NAN_FOUND
 import CategoricalArrays.unwrap
 
 rng = StableRNG(111)
@@ -220,7 +220,7 @@ end
         ],
         pool=missing
     )
-    @test_throws DomainError mode.(unf_arr)
+    @test_throws ERR_NAN_FOUND mode.(unf_arr)
 end
 
 @testset "broadcasting modes" begin
@@ -261,7 +261,7 @@ end
         ],
         pool=missing
     )
-    @test_throws DomainError modes.(unf_arr)
+    @test_throws ERR_NAN_FOUND modes.(unf_arr)
 end
 
 @testset "cat for UnivariateFiniteArray" begin

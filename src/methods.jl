@@ -194,15 +194,15 @@ function Dist.modes(d::UnivariateFinite{S,V,R,P}) where {S,V,R,P}
     return d.decoder(M)
 end
 
+const ERR_NAN_FOUND = DomainError(
+    NaN,
+    "`mode(s)` is invalid for a `UnivariateFinite` distribution "*
+    "with `pdf` containing `NaN`s"
+)
+
 function throw_nan_error_if_needed(x)
     if isnan(x)
-        throw(
-            DomainError(
-                NaN,
-                "`mode(s)` is invalid for a `UnivariateFinite` distribution "*
-                "with `pdf` containing `NaN`s"
-            )
-        )
+        throw(ERR_NAN_FOUND)
     end
 end
 
