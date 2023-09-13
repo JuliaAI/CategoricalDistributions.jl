@@ -16,7 +16,7 @@ using Random
 
 const Dist = Distributions
 
-import Distributions: pdf, logpdf, support, mode
+import Distributions: pdf, logpdf, support, mode, modes
 
 include("utilities.jl")
 include("types.jl")
@@ -28,7 +28,7 @@ include("arithmetic.jl")
 export UnivariateFinite, UnivariateFiniteArray, UnivariateFiniteVector
 
 # re-eport from Distributions:
-export pdf, logpdf, support, mode
+export pdf, logpdf, support, mode, modes
 
 # re-export from ScientificTypesBase:
 export Multiclass, OrderedFactor
