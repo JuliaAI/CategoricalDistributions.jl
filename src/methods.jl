@@ -120,7 +120,7 @@ end
 # TODO: It would be useful to define == as well.
 
 """
-    Dist.pdf(d::UnivariateFinite, x)
+    Distributions.pdf(d::UnivariateFinite, x)
 
 Probability of `d` at `x`.
 
@@ -178,15 +178,31 @@ function Dist.mode(d::UnivariateFinite)
     return d.decoder(m)
 end
 
+function Dist.modes(d::UnivariateFinite{S,V,R,P}) where {S,V,R,P}
+    dic = d.prob_given_ref
+    p = values(dic)
+    max_prob = maximum(p)
+    M = R[] # modes
+
+    # see comment in `mode` above
+    throw_nan_error_if_needed(max_prob)
+    for (x, prob) in dic
+        if prob == max_prob
+            push!(M, x)
+        end
+    end
+    return d.decoder(M)
+end
+
+const ERR_NAN_FOUND = DomainError(
+    NaN,
+    "`mode(s)` is invalid for a `UnivariateFinite` distribution "*
+    "with `pdf` containing `NaN`s"
+)
+
 function throw_nan_error_if_needed(x)
     if isnan(x)
-        throw(
-            DomainError(
-                NaN,
-                "`mode` is invalid for `UnivariateFininite` distribution "*
-                "with `pdf` containing `NaN`s"
-            )
-        )
+        throw(ERR_NAN_FOUND)
     end
 end
 
