@@ -8,6 +8,7 @@ using StableRNGs
 import Random
 rng = StableRNG(123)
 using ScientificTypes
+import Random.default_rng
 
 import CategoricalDistributions: classes, ERR_NAN_FOUND
 
@@ -127,7 +128,7 @@ end
 @testset "broadcasting pdf over single UnivariateFinite object" begin
     d = UnivariateFinite(["a", "b"], [0.1, 0.9], pool=missing);
     @test pdf.(d, ["a", "b"]) == [0.1, 0.9]
-end 
+end
 
 @testset "constructor arguments not categorical values" begin
     @test_throws ArgumentError UnivariateFinite(Dict('f'=>0.7, 'q'=>0.2))
@@ -297,6 +298,26 @@ end
     using UnicodePlots
     @test displays_okay([0.3, 0.7])
     @test displays_okay([5 + 3im, 4 - 7im])
+end
+
+if VERSION >= v"1.7"
+    @testset "rand signatures" begin
+        d = UnivariateFinite(
+            ["maybe", "no", "yes"],
+            [0.5, 0.4, 0.1];
+            pool=missing,
+        )
+
+        Random.seed!(123)
+        samples = [rand(default_rng(), d) for i in 1:30]
+        Random.seed!(123)
+        @test [rand(d) for i in 1:30] == samples
+
+        Random.seed!(123)
+        samples = rand(Random.default_rng(), d, 3, 5)
+        Random.seed!(123)
+        @test samples == rand(d, 3, 5)
+    end
 end
 
 end # module

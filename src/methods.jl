@@ -215,6 +215,8 @@ end
 """
     _cumulative(d::UnivariateFinite)
 
+**Private method.**
+
 Return the cumulative probability vector `C` for the distribution `d`,
 using only classes in the support of `d`, ordered according to the
 categorical elements used at instantiation of `d`. Used only to
@@ -238,13 +240,15 @@ end
 """
 _rand(rng, p_cumulative, R)
 
+**Private method.**
+
 Randomly sample the distribution with discrete support `R(1):R(n)`
 which has cumulative probability vector `p_cumulative` (see
 [`_cummulative`](@ref)).
 
 """
 function _rand(rng, p_cumulative, R)
-    real_sample = rand(rng)*p_cumulative[end]
+    real_sample = Base.rand(rng)*p_cumulative[end]
     K = R(length(p_cumulative))
     index = K
     for i in R(2):R(K)
@@ -261,10 +265,11 @@ function Base.rand(rng::AbstractRNG,
     p_cumulative = _cumulative(d)
     return Dist.support(d)[_rand(rng, p_cumulative, R)]
 end
+Base.rand(d::UnivariateFinite) = rand(Random.default_rng(), d)
 
 function Base.rand(rng::AbstractRNG,
                    d::UnivariateFinite{<:Any,<:Any,R},
-                   dim1::Int, moredims::Int...) where R # ref type
+                   dim1::Integer, moredims::Integer...) where R # ref type
     p_cumulative = _cumulative(d)
     A = Array{R}(undef, dim1, moredims...)
     for i in eachindex(A)
@@ -274,7 +279,8 @@ function Base.rand(rng::AbstractRNG,
     return broadcast(i -> support[i], A)
 end
 
-rng(d::UnivariateFinite, args...) = rng(Random.GLOBAL_RNG, d, args...)
+Base.rand(d::UnivariateFinite, dim1::Integer, moredims::Integer...) =
+    rand(Random.default_rng(), d, dim1, moredims...)
 
 function Dist.fit(d::Type{<:UnivariateFinite},
                            v::AbstractVector{C}) where C
