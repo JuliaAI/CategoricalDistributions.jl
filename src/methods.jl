@@ -248,7 +248,7 @@ which has cumulative probability vector `p_cumulative` (see
 
 """
 function _rand(rng, p_cumulative, R)
-    real_sample = Base.rand(rng)*p_cumulative[end]
+    real_sample = rand(rng)*p_cumulative[end]
     K = R(length(p_cumulative))
     index = K
     for i in R(2):R(K)
