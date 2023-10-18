@@ -215,6 +215,8 @@ end
 """
     _cumulative(d::UnivariateFinite)
 
+**Private method.**
+
 Return the cumulative probability vector `C` for the distribution `d`,
 using only classes in the support of `d`, ordered according to the
 categorical elements used at instantiation of `d`. Used only to
@@ -238,6 +240,8 @@ end
 """
 _rand(rng, p_cumulative, R)
 
+**Private method.**
+
 Randomly sample the distribution with discrete support `R(1):R(n)`
 which has cumulative probability vector `p_cumulative` (see
 [`_cummulative`](@ref)).
@@ -256,25 +260,26 @@ function _rand(rng, p_cumulative, R)
     return index
 end
 
-function Base.rand(rng::AbstractRNG,
-                   d::UnivariateFinite{<:Any,<:Any,R}) where R
-    p_cumulative = _cumulative(d)
-    return Dist.support(d)[_rand(rng, p_cumulative, R)]
+Random.eltype(::Type{<:UnivariateFinite{<:Any,V}}) where V = V
+
+# The Sampler hook into Random's API is discussed in the Julia documentation, in the
+# Standard Library section on Random.
+function Random.Sampler(
+    ::AbstractRNG,
+    d::UnivariateFinite,
+    ::Random.Repetition,
+    )
+    data = (_cumulative(d), Dist.support(d))
+    Random.SamplerSimple(d, data)
 end
 
-function Base.rand(rng::AbstractRNG,
-                   d::UnivariateFinite{<:Any,<:Any,R},
-                   dim1::Int, moredims::Int...) where R # ref type
-    p_cumulative = _cumulative(d)
-    A = Array{R}(undef, dim1, moredims...)
-    for i in eachindex(A)
-        @inbounds A[i] = _rand(rng, p_cumulative, R)
-    end
-    support = Dist.support(d)
-    return broadcast(i -> support[i], A)
+function Base.rand(
+    rng::AbstractRNG,
+    sampler::Random.SamplerSimple{<:UnivariateFinite{<:Any,<:Any,R}},
+    ) where R
+    p_cumulative, support = sampler.data
+    return support[_rand(rng, p_cumulative, R)]
 end
-
-rng(d::UnivariateFinite, args...) = rng(Random.GLOBAL_RNG, d, args...)
 
 function Dist.fit(d::Type{<:UnivariateFinite},
                            v::AbstractVector{C}) where C
