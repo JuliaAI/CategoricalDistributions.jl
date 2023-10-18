@@ -300,24 +300,26 @@ end
     @test displays_okay([5 + 3im, 4 - 7im])
 end
 
-if VERSION >= v"1.7"
-    @testset "rand signatures" begin
-        d = UnivariateFinite(
-            ["maybe", "no", "yes"],
-            [0.5, 0.4, 0.1];
-            pool=missing,
-        )
+@testset "rand signatures" begin
+    d = UnivariateFinite(
+        ["maybe", "no", "yes"],
+        [0.5, 0.4, 0.1];
+        pool=missing,
+    )
 
-        Random.seed!(123)
-        samples = [rand(default_rng(), d) for i in 1:30]
-        Random.seed!(123)
-        @test [rand(d) for i in 1:30] == samples
+    # smoke test:
+    sampler = Random.Sampler(default_rng(), d, Val(1))
+    rand(default_rng(), sampler)
 
-        Random.seed!(123)
-        samples = rand(Random.default_rng(), d, 3, 5)
-        Random.seed!(123)
-        @test samples == rand(d, 3, 5)
-    end
+    Random.seed!(123)
+    samples = [rand(default_rng(), d) for i in 1:30]
+    Random.seed!(123)
+    @test [rand(d) for i in 1:30] == samples
+
+    Random.seed!(123)
+    samples = rand(Random.default_rng(), d, 3, 5)
+    Random.seed!(123)
+    @test samples == rand(d, 3, 5)
 end
 
 end # module
