@@ -1,9 +1,14 @@
 module TestArithmetic
 
 using Test
+import BenchmarkTools: @belapsed
 using CategoricalDistributions
 using StableRNGs
 rng = StableRNG(123)
+
+macro belapsed1(ex)
+    :(@belapsed $ex seconds=1 evals=1)
+end
 
 L = ["yes", "no"]
 d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
@@ -46,27 +51,27 @@ fast = UnivariateFinite(L, P, pool=missing);
 
 @testset "performant arithmetic for UnivariateFiniteArray" begin
     @test pdf(slow + slow, L) == pdf(fast + fast, L)
-    t_slow = @elapsed @eval slow + slow
-    t_fast = @elapsed @eval fast + fast
+    t_slow = @belapsed1 $slow + $slow
+    t_fast = @belapsed1 $fast + $fast
     @test t_slow/t_fast > 10
 
     @test pdf(slow - slow, L) == pdf(fast - fast, L)
-    t_slow = @elapsed @eval slow - slow
-    t_fast = @elapsed @eval fast - fast
+    t_slow = @belapsed1 $slow - $slow
+    t_fast = @belapsed1 $fast - $fast
     @test t_slow/t_fast > 10
 
     @test pdf(42*slow, L) == pdf(42*fast, L)
     @test pdf(slow*42, L) == pdf(fast*42, L)
-    t_slow = @elapsed @eval 42*slow
-    t_fast = @elapsed @eval 42*fast
+    t_slow = @belapsed1 42*$slow
+    t_fast = @belapsed1 42*$fast
     @test t_slow/t_fast > 10
-    t_slow = @elapsed @eval slow*42
-    t_fast = @elapsed @eval fast*42
+    t_slow = @belapsed1 $slow*42
+    t_fast = @belapsed1 $fast*42
     @test t_slow/t_fast > 10
 
     @test pdf(slow/42, L) == pdf(fast/42, L)
-    t_slow = @elapsed @eval slow/42
-    t_fast = @elapsed @eval fast/42
+    t_slow = @belapsed1 $slow/42
+    t_fast = @belapsed1 $fast/42
     @test t_slow/t_fast > 10
 end
 
