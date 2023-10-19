@@ -28,6 +28,7 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     @test classes(d) == classes(s)
     @test levels(d) == levels(s)
     @test support(d) == [f, q, s]
+    @test support(d) == [CategoricalDistributions.fast_support(d)...]
     @test CategoricalDistributions.sample_scitype(d) == OrderedFactor{4}
     # levels!(v, reverse(levels(v)))
     # @test classes(d) == [s, q, f, a]
@@ -54,7 +55,7 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
 
     N = 50
     rng = StableRNG(125)
-    samples = [rand(rng,d) for i in 1:50];
+    samples = [rand(rng, d) for i in 1:N];
     rng = StableRNG(125)
     @test samples == [rand(rng, d) for i in 1:N]
 
@@ -301,15 +302,18 @@ end
 end
 
 @testset "rand signatures" begin
-    d = UnivariateFinite(
-        ["maybe", "no", "yes"],
-        [0.5, 0.4, 0.1];
-        pool=missing,
-    )
+    dict = Dict(s=>0.1, q=>0.2, f=>0.7)
+    d    = UnivariateFinite(dict)
 
-    # smoke test:
     sampler = Random.Sampler(default_rng(), d, Val(1))
-    rand(default_rng(), sampler)
+    @test sampler isa Random.SamplerTrivial
+    sampler = Random.Sampler(default_rng(), d, Val(Inf))
+    @test sampler isa Random.SamplerSimple
+
+    # sampling one at a time, or all at once is the same:
+    rng0 = StableRNG(123)
+    samples = [rand(rng0, d) for i in 1:30]
+    @test samples == [rand(StableRNG(123), d, 30)...]
 
     Random.seed!(123)
     samples = [rand(default_rng(), d) for i in 1:30]
