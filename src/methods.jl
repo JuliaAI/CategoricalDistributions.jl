@@ -80,8 +80,7 @@ end
 # not exported:
 sample_scitype(d::UnivariateFiniteUnion) = d.scitype
 
-CategoricalArrays.isordered(d::UnivariateFinite) = isordered(classes(d))
-CategoricalArrays.isordered(u::UnivariateFiniteArray) = isordered(classes(u))
+CategoricalArrays.isordered(d::UnivariateFiniteUnion) = isordered(classes(d))
 
 
 ## DISPLAY
