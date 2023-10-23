@@ -287,17 +287,27 @@ Random.Sampler(::AbstractRNG, d::UnivariateFinite, ::Val{1}) = Random.SamplerTri
 
 function Base.rand(
     rng::AbstractRNG,
-    sampler::Random.SamplerTrivial{<:UnivariateFinite{<:Any,<:Any,<:Any,P}},
-    ) where P
+    sampler::Random.SamplerTrivial{<:UnivariateFinite{<:Any,<:Any,V,P}},
+    ) where {V, P}
 
     d = sampler[]
     u = rand(rng)
 
     total = zero(P)
-    for (i, prob) in enumerate(values(d.prob_given_ref))
+    
+    # For type stability we assign `zero(V)`` as the default ref
+    # This isn't a problem since we know that `rand` is always defined 
+    # as UnivariateFinite objects have non-negative probabilities,
+    # summing up to a non-negative value.
+    rng_key = zero(V)
+    for (ref, prob) in pairs(d.prob_given_ref)
         total += prob
-        u <= total && return fast_support(d)[i]
+        u <= total && begin
+            rng_key = ref
+            break
+        end
     end
+    return d.decoder(rng_key)
 end
 
 
