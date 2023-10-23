@@ -1,6 +1,6 @@
 # not for export:
-const UnivariateFiniteUnion =
-    Union{UnivariateFinite, UnivariateFiniteArray}
+const UnivariateFiniteUnion{S,V,R,P} =
+    Union{UnivariateFinite{S,V,R,P}, UnivariateFiniteArray{S,V,R,P}}
 
 """
     classes(d::UnivariateFinite)
@@ -42,18 +42,34 @@ end
 raw_support(d::UnivariateFiniteUnion) = collect(keys(d.prob_given_ref))
 
 """
-    Dist.support(d::UnivariateFinite)
-    Dist.support(d::UnivariateFiniteArray)
+    Distributions.support(d::UnivariateFinite)
+    Distributions.support(d::UnivariateFiniteArray)
 
 Ordered list of classes associated with non-zero probabilities.
 
     v = categorical(["yes", "maybe", "no", "yes"])
     d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
+    Distributions.support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
 
 """
-Dist.support(d::UnivariateFiniteUnion) =
-    map(d.decoder, raw_support(d))
+Distributions.support(d::UnivariateFiniteUnion) = classes(d)[raw_support(d)]
+
+"""
+    fast_support(d::UnivariateFinite)
+
+Same as `Distributions.support(d)` except it returns a vector of `CategoricalValue`s,
+rather than a `CategoricalVector`. It executes faster, about five times faster for a
+three-class `UnivariateFinite` distribution.
+"""
+function fast_support(d::UnivariateFiniteUnion{S,V,R}) where {S,V,R}
+    raw_support = keys(d.prob_given_ref)
+    n = length(raw_support)
+    ret = Vector{CategoricalValue{V,R}}(undef, n)
+    for (i, ref) in enumerate(raw_support)
+        ret[i] = d.decoder(ref)
+    end
+    ret
+end
 
 # TODO: If I manually give a class zero probability, it will appear in
 # support, which is probably confusing. We may need two versions of
@@ -64,8 +80,7 @@ Dist.support(d::UnivariateFiniteUnion) =
 # not exported:
 sample_scitype(d::UnivariateFiniteUnion) = d.scitype
 
-CategoricalArrays.isordered(d::UnivariateFinite) = isordered(classes(d))
-CategoricalArrays.isordered(u::UnivariateFiniteArray) = isordered(classes(u))
+CategoricalArrays.isordered(d::UnivariateFiniteUnion) = isordered(classes(d))
 
 
 ## DISPLAY
@@ -96,8 +111,8 @@ probability pairs.  Returns `false` otherwise.
 
 """
 function Base.isapprox(d1::UnivariateFinite, d2::UnivariateFinite; kwargs...)
-    support1 = Dist.support(d1)
-    support2 = Dist.support(d2)
+    support1 = fast_support(d1)
+    support2 = fast_support(d2)
     for c in support1
         c in support2 || return false
         isapprox(pdf(d1, c), pdf(d2, c); kwargs...) ||
@@ -107,8 +122,8 @@ function Base.isapprox(d1::UnivariateFinite, d2::UnivariateFinite; kwargs...)
 end
 function Base.isapprox(d1::UnivariateFiniteArray,
                        d2::UnivariateFiniteArray; kwargs...)
-    support1 = Dist.support(d1)
-    support2 = Dist.support(d2)
+    support1 = fast_support(d1)
+    support2 = fast_support(d2)
     for c in support1
         c in support2 || return false
         isapprox(pdf.(d1, c), pdf.(d2, c); kwargs...) ||
@@ -206,22 +221,18 @@ function throw_nan_error_if_needed(x)
     end
 end
 
-# mode(v::Vector{UnivariateFinite}) = mode.(v)
-# mode(u::UnivariateFiniteVector{2}) =
-#     [u.support[ifelse(s > 0.5, 2, 1)] for s in u.scores]
-# mode(u::UnivariateFiniteVector{C}) where {C} =
-#     [u.support[findmax(s)[2]] for s in eachrow(u.scores)]
+
+# # HELPERS FOR RAND
 
 """
     _cumulative(d::UnivariateFinite)
 
 **Private method.**
 
-Return the cumulative probability vector `C` for the distribution `d`,
-using only classes in the support of `d`, ordered according to the
-categorical elements used at instantiation of `d`. Used only to
-implement random sampling from `d`. We have `C[1] == 0` and `C[end] ==
-1`, assuming the probabilities have been normalized.
+Return the cumulative probability vector `C` for the distribution `d`, using only classes
+in `Distributions.support(d)`, ordered according to the categorical elements used at
+instantiation of `d`. Used only to implement random sampling from `d`. We have `C[1] == 0`
+and `C[end] == 1`, assuming the probabilities have been normalized.
 
 """
 function _cumulative(d::UnivariateFinite{S,V,R,P}) where {S,V,R,P<:Real}
@@ -260,16 +271,54 @@ function _rand(rng, p_cumulative, R)
     return index
 end
 
-Random.eltype(::Type{<:UnivariateFinite{<:Any,V}}) where V = V
+
+# # RAND
+
+Random.eltype(::Type{<:UnivariateFinite{S,V,R}}) where {S,V,R} =
+    CategoricalArrays.CategoricalValue{V,R}
 
 # The Sampler hook into Random's API is discussed in the Julia documentation, in the
 # Standard Library section on Random.
+
+
+## Single samples
+
+Random.Sampler(::AbstractRNG, d::UnivariateFinite, ::Val{1}) = Random.SamplerTrivial(d)
+
+function Base.rand(
+    rng::AbstractRNG,
+    sampler::Random.SamplerTrivial{<:UnivariateFinite{<:Any,<:Any,V,P}},
+    ) where {V, P}
+
+    d = sampler[]
+    u = rand(rng)
+
+    total = zero(P)
+    
+    # For type stability we assign `zero(V)`` as the default ref
+    # This isn't a problem since we know that `rand` is always defined 
+    # as UnivariateFinite objects have non-negative probabilities,
+    # summing up to a non-negative value.
+    rng_key = zero(V)
+    for (ref, prob) in pairs(d.prob_given_ref)
+        total += prob
+        u <= total && begin
+            rng_key = ref
+            break
+        end
+    end
+    return d.decoder(rng_key)
+end
+
+
+## Multiple samples
+
 function Random.Sampler(
     ::AbstractRNG,
     d::UnivariateFinite,
     ::Random.Repetition,
     )
-    data = (_cumulative(d), Dist.support(d))
+    data = (_cumulative(d), fast_support(d))
     Random.SamplerSimple(d, data)
 end
 
@@ -280,6 +329,9 @@ function Base.rand(
     p_cumulative, support = sampler.data
     return support[_rand(rng, p_cumulative, R)]
 end
+
+
+## FIT
 
 function Dist.fit(d::Type{<:UnivariateFinite},
                            v::AbstractVector{C}) where C
