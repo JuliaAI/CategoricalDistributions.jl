@@ -9,7 +9,12 @@ import Base: +, *, /, -
 pdf_matrix(d::UnivariateFinite, L) = pdf.(d, L)
 pdf_matrix(d::AbstractArray{<:UnivariateFinite}, L) = pdf(d, L)
 
-function +(d1::U, d2::U) where U <: SingletonOrArray
+function +(d1::UnivariateFinite{S, V}, d2::UnivariateFinite{S, V}) where {S, V}
+    L = classes(d1)
+    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    return UnivariateFinite(L, pdf_matrix(d1, L) + pdf_matrix(d2, L))
+end
+function +(d1::UnivariateFiniteArray{S, V}, d2::UnivariateFiniteArray{S, V}) where {S, V}
     L = classes(d1)
     L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) + pdf_matrix(d2, L))
@@ -27,7 +32,12 @@ end
 -(d::UnivariateFinite) = _minus(d, UnivariateFinite)
 -(d::UnivariateFiniteArray) = _minus(d, UnivariateFiniteArray)
 
-function -(d1::U, d2::U) where U <: SingletonOrArray
+function -(d1::UnivariateFinite{S, V}, d2::UnivariateFinite{S, V}) where {S, V}
+    L = classes(d1)
+    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    return UnivariateFinite(L, pdf_matrix(d1, L) - pdf_matrix(d2, L))
+end
+function -(d1::UnivariateFiniteArray{S, V}, d2::UnivariateFiniteArray{S, V}) where {S, V}
     L = classes(d1)
     L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) - pdf_matrix(d2, L))
