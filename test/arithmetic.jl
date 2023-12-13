@@ -13,7 +13,7 @@ end
 L = ["yes", "no"]
 d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
 d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
-df32 = UnivariateFinite(L, rand(Float32, rng, 2), pool=missing)
+df32 = UnivariateFinite(L, rand(rng, Float32, 2), pool=missing)
 
 @testset "arithmetic" begin
 
