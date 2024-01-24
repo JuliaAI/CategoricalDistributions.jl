@@ -13,6 +13,7 @@ end
 L = ["yes", "no"]
 d1 = UnivariateFinite(L, rand(rng, 2), pool=missing)
 d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
+df32 = UnivariateFinite(L, rand(rng, Float32, 2), pool=missing)
 
 @testset "arithmetic" begin
 
@@ -20,7 +21,9 @@ d2 = UnivariateFinite(L, rand(rng, 2), pool=missing)
     for op in [:+, :-]
         quote
             s = $op(d1, d2 )
+            s2 = $op(d1, df32 )
             @test $op(pdf.(d1, L), pdf.(d2, L)) ≈ pdf.(s, L)
+            @test $op(pdf.(d1, L), pdf.(df32, L)) ≈ pdf.(s2, L)
         end |> eval
     end
 
