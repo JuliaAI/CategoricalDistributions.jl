@@ -24,6 +24,12 @@ import CategoricalDistributions: classes
     @test_logs((:warn, r"No "),
                UnivariateFinite(['f', 'q', 's'],  [0.7, 0.2, 0.1]))
 
+    junk = ["F", "Q", "S"]
+    @test_throws(
+        CategoricalDistributions.err_incompatible_pool(junk, classes(v)),
+        UnivariateFinite(junk, [0.1, 0.9], pool=v),
+    )
+
 end
 
 @testset "array constructors" begin
@@ -37,7 +43,7 @@ end
 
     UnivariateFinite(supp, probs, pool=missing, augment=true);
 
-    # construction from pool and support does not 
+    # construction from pool and support does not
     # consist of categorical elements (See issue #34)
     v = categorical(["x", "x", "y", "z", "y", "z", "p"])
     probs1 = [0.1, 0.2, 0.7]
@@ -75,7 +81,7 @@ end
     v = categorical(['x', 'x', 'y', 'x', 'z', 'w'])
     probs_fillarray = FillArrays.Ones(100, 3)
     probs_array = ones(100, 3)
-    
+
     probs1_fillarray = FillArrays.Fill(0.2, 100, 2)
     probs1_array = fill(0.2, 100, 2)
 
@@ -88,7 +94,7 @@ end
     u1_from_fillarray = UnivariateFinite(
         ['x', 'y', 'z'], probs1_fillarray, pool=v, augment=true
     )
-    
+
     @test u_from_array.prob_given_ref == u_from_fillarray.prob_given_ref
     @test u1_from_array.prob_given_ref == u1_from_fillarray.prob_given_ref
 
