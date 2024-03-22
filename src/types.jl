@@ -239,6 +239,11 @@ _check_augmentable(support, probs) = _check_probs_01(probs) &&
     size(probs)[end] + 1 == length(support) ||
     throw(err_dim_augmented(support, probs))
 
+err_incompatible_pool(support, classes) = ArgumentError(
+    "Specified support, $support, not contained in "*
+        "specified pool, $(levels(classes)). "
+)
+
 
 ## AUGMENTING ARRAYS TO MAKE THEM PROBABILITY ARRAYS
 
@@ -277,7 +282,7 @@ function _augment_probs(::Val{true},
 end
 
 _array_or_scalar(x::Array) = x
-_array_or_scalar(x::AbstractArray) = copyto!(similar(Array{eltype(x)}, axes(x)), x) 
+_array_or_scalar(x::AbstractArray) = copyto!(similar(Array{eltype(x)}, axes(x)), x)
 _array_or_scalar(x) = x
 
 ## CONSTRUCTORS - FROM DICTIONARY
@@ -453,14 +458,12 @@ function _UnivariateFinite(support,
         _support = classes(v)
     else
         _classes = classes(pool)
-        issubset(support, _classes) ||
-            error("Specified support, $support, not contained in "*
-                  "specified pool, $(levels(classes)). ")
+        issubset(support, _classes) || throw(err_incompatible_pool(support, _classes))
         idxs = getindex.(
-            Ref(CategoricalArrays.DataAPI.invrefpool(_classes)), 
+            Ref(CategoricalArrays.DataAPI.invrefpool(_classes)),
             support
         )
-        _support = _classes[idxs] 
+        _support = _classes[idxs]
     end
 
     # calls core method:
