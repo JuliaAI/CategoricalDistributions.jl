@@ -63,13 +63,11 @@ function Base.setindex!(u::UniFinArr{S,V,R,P,N},
     return u
 end
 
-# TODO: return an exception without throwing it:
-
-_err_incompatible_levels() = throw(DomainError(
+const ERR_INCOMPATIBLE_LEVELS = DomainError(
     "Cannot concatenate `UnivariateFiniteArray`s with " *
-    "different categorical levels (classes), " *
+    "different categorical levels, " *
     "or whose levels, when ordered, are not  " *
-    "consistently ordered. "))
+    "consistently ordered. ")
 
 # terminology:
 
@@ -90,11 +88,11 @@ function Base.cat(us::UniFinArr{S,V,R,P,N}...;
     support_with_duplicates = Dist.support(u1)
     _classes = classes(u1)
     for i in 2:length(us)
-        isordered(us[i]) == ordered || _err_incompatible_levels()
+        isordered(us[i]) == ordered || throw(ERR_INCOMPATIBLE_LEVELS)
         if ordered
-            classes(us[i]) == _classes || _err_incompatible_levels()
+            classes(us[i]) == _classes || throw(ERR_INCOMPATIBLE_LEVELS)
         else
-            Set(classes(us[i])) == Set(_classes) || _err_incompatible_levels()
+            Set(classes(us[i])) == Set(_classes) || throw(ERR_INCOMPATIBLE_LEVELS)
         end
         support_with_duplicates = vcat(support_with_duplicates,
                                        Dist.support(us[i]))

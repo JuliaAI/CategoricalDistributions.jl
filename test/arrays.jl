@@ -33,14 +33,13 @@ end
     probs  = rand(rng, n)
     supp = ["class1", "class2"]
 
-    # @test_throws DomainError UnivariateFinite(supp, probs, pool=missing)
+    @test_throws DimensionMismatch UnivariateFinite(supp, probs, pool=missing)
     u = UnivariateFinite(supp, probs, pool=missing, augment=true)
     @test length(u) == n
     @test size(u) == (n,)
     @test pdf.(u, "class2") ≈ probs
 
     # autosupport:
-    # @test_throws DomainError UnivariateFinite(probs, pool=missing)
     u = UnivariateFinite(probs, pool=missing, augment=true)
     @test length(u) == n
     @test size(u) == (n,)
@@ -321,13 +320,13 @@ end
     probs = rand(rng, 3)
     u1 = UnivariateFinite(v1, probs, augment=true)
     u2 = UnivariateFinite(v2, probs, augment=true)
-    @test_throws DomainError vcat(u1, u2)
+    @test_throws CategoricalDistributions.ERR_INCOMPATIBLE_LEVELS vcat(u1, u2)
 
     v1 = categorical(1:2)
     v2 = categorical(2:3)
     u1 = UnivariateFinite(v1, probs, augment=true)
     u2 = UnivariateFinite(v2, probs, augment=true)
-    @test_throws DomainError vcat(u1, u2)
+    @test_throws CategoricalDistributions.ERR_INCOMPATIBLE_LEVELS vcat(u1, u2)
 
 end
 
