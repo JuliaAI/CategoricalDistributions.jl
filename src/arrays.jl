@@ -4,7 +4,7 @@ const UniFinArr = UnivariateFiniteArray
 
 Base.size(u::UniFinArr, args...) =
     size(first(values(u.prob_given_ref)), args...)
-    
+
 function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
     # It's faster to generate `Array`s of `refs` and indexed `ref_probs`
     # and pass them to the `LittleDict` constructor.
@@ -12,11 +12,11 @@ function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
     # for allocating these arrays.
     u_dict = u.prob_given_ref
     a, rest = Iterators.peel(u_dict)
-    # `a` is of the form `key => value`. 
+    # `a` is of the form `key => value`.
     a_ref, a_prob = first(a), getindex(last(a), i...)
-    
-    # Preallocate Arrays using the key and value of the first 
-    # element (i.e `a`) of `u_dict`. 
+
+    # Preallocate Arrays using the key and value of the first
+    # element (i.e `a`) of `u_dict`.
     n_refs = length(u_dict)
     refs = Vector{R}(undef, n_refs)
     if a_prob isa AbstractArray
@@ -26,9 +26,9 @@ function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
         ref_probs = Vector{P}(undef, n_refs)
         unf_constructor = UnivariateFinite
     end
-    
+
     # Fill in the first elements
-    # Both `refs` and `ref_probs` are both of type `Vector` and hence support 
+    # Both `refs` and `ref_probs` are both of type `Vector` and hence support
     # linear indexing with index starting at `1`
     refs[1] = a_ref
     ref_probs[1] = a_prob
@@ -37,15 +37,15 @@ function Base.getindex(u::UniFinArr{<:Any,<:Any,R, P}, i...) where {R, P}
     iter = 2
     for (ref, ref_prob) in rest
         refs[iter] = ref
-        ref_probs[iter] = getindex(ref_prob, i...) 
+        ref_probs[iter] = getindex(ref_prob, i...)
         iter += 1
     end
 
-    # `keytype(prob_given_ref)` is always same as `keytype(u_dict)`. 
-    # But `ndims(valtype(prob_given_ref))` might not be the same 
+    # `keytype(prob_given_ref)` is always same as `keytype(u_dict)`.
+    # But `ndims(valtype(prob_given_ref))` might not be the same
     # as `ndims(valtype(u_dict))`.
     prob_given_ref = LittleDict{R, eltype(ref_probs)}(refs, ref_probs)
-    
+
     return unf_constructor(u.scitype, u.decoder, prob_given_ref)
 end
 
@@ -192,13 +192,13 @@ function Base.Broadcast.broadcasted(
     length(u) == length(v) ||throw(DimensionMismatch(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
-    
+
     _classes = classes(u)
     _classes_pool = CategoricalArrays.pool(_classes)
     T = eltype(v) >: Missing ? Missing : Union{}
     v_loc_flat = Vector{Tuple{Union{R, T}, Int}}(undef, length(v))
-    
-    
+
+
     for (i, x) in enumerate(v)
         cv_ref = ismissing(x) ? missing : get(_classes_pool, x, zero(R))
         isequal(cv_ref, 0) && throw(err_missing_class(x))
