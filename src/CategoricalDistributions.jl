@@ -1,5 +1,6 @@
 module CategoricalDistributions
 
+using Reexport
 import Distributions
 import ScientificTypes:
     Finite,
@@ -10,7 +11,7 @@ import ScientificTypes:
     ScientificTypesBase
 
 using OrderedCollections
-using CategoricalArrays
+@reexport using CategoricalArrays
 import Missings
 using Random
 
