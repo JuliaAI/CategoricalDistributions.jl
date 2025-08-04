@@ -66,7 +66,7 @@ A `UnivariateFinite` distribution tracks all classes in the pool:
 
 ```julia
 levels(d2)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "maybe"
  "no"
  "yes"
@@ -106,7 +106,7 @@ probability array:
 
 ```julia
 julia> L = levels(data)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "maybe"
  "no"
  "yes"
