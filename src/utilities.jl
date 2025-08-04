@@ -23,18 +23,21 @@ of `x` (which differentiates this method from
 
 Broadcasted versions of `int`.
 
-    julia> v = categorical([:c, :b, :c, :a])
-    julia> levels(v)
-    3-element Array{Symbol,1}:
-     :a
-     :b
-     :c
-    julia> int(v)
-    4-element Array{UInt32,1}:
-     0x00000003
-     0x00000002
-     0x00000003
-     0x00000001
+```julia-repl
+julia> v = categorical(['c', 'b', 'c', 'a'])
+julia> levels(v)
+4-element CategoricalArray{Char,1,UInt32}:
+ 'c'
+ 'b'
+ 'c'
+ 'a'
+julia> int(v)
+4-element Array{UInt32,1}:
+ 0x00000003
+ 0x00000002
+ 0x00000003
+ 0x00000001
+```
 
 See  [`decoder`](@ref) on how to invert the `int` operation.
 """
@@ -102,9 +105,11 @@ _transform(pool, X::AbstractArray) = broadcast(x -> _transform(pool, x), X)
 """
     transform(e::Union{CategoricalElement,CategoricalArray,CategoricalPool},  X)
 
+**Private method.**
+
 Transform the specified object `X` into a categorical version, using
 the pool contained in `e`. Here `X` is a raw value (an element of
-`levels(e)`) or an `AbstractArray` of such values.
+`unwrap.(levels(e))`) or an `AbstractArray` of such values.
 
 ```julia
 v = categorical(["x", "y", "y", "x", "x"])
@@ -116,7 +121,6 @@ julia> transform(v[1], ["x" "x"; missing "y"])
  "x"       "x"
  missing   "y"
 
-**Private method.**
 
 """
 transform(e::Union{CategoricalArray, CategoricalValue},
