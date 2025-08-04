@@ -65,7 +65,7 @@ julia> rand(d, 3)
  CategoricalValue{Symbol,UInt32} 'z'
 
 julia> levels(samples)
-3-element Array{Symbol,1}:
+3-element CategoricalArray{Char,1,UInt32}:
  'x'
  'y'
  'z'
