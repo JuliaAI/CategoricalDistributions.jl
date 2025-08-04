@@ -19,6 +19,7 @@ const Dist = Distributions
 
 import Distributions: pdf, logpdf, support, mode, modes
 
+include("deprecated.jl")
 include("utilities.jl")
 include("types.jl")
 include("scitypes.jl")

@@ -8,58 +8,6 @@ function scitype(c::CategoricalValue)
 end
 
 
-
-# # CLASSES
-
-"""
-    classes(x)
-
-Return, as a `CategoricalVector`, all the categorical elements with
-the same pool as `CategoricalValue` `x` (including `x`), with an
-ordering consistent with the pool. Note that `x in classes(x)` is
-always true.
-
-Not to be confused with `levels(x.pool)`. See the example below.
-
-Also, overloaded for `x` a `CategoricalArray`, `CategoricalPool`, and
-for views of `CategoricalArray`.
-
-**Private method.*
-
-    julia>  v = categorical([:c, :b, :c, :a])
-    4-element CategoricalArrays.CategoricalArray{Symbol,1,UInt32}:
-     :c
-     :b
-     :c
-     :a
-
-    julia> levels(v)
-    3-element Array{Symbol,1}:
-     :a
-     :b
-     :c
-
-    julia> x = v[4]
-    CategoricalArrays.CategoricalValue{Symbol,UInt32} :a
-
-    julia> classes(x)
-    3-element CategoricalArrays.CategoricalArray{Symbol,1,UInt32}:
-     :a
-     :b
-     :c
-
-    julia> levels(x.pool)
-    3-element Array{Symbol,1}:
-     :a
-     :b
-     :c
-
-"""
-classes(p::CategoricalPool) = [p[i] for i in 1:length(p)]
-classes(x::CategoricalValue) = classes(CategoricalArrays.pool(x))
-classes(v::CategoricalArray) = classes(CategoricalArrays.pool(v))
-classes(v::SubArray{<:Any, <:Any, <:CategoricalArray}) = classes(parent(v))
-
 # # CATEGORICAL VALUES TO INTEGERS
 
 """
