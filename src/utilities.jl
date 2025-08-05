@@ -7,6 +7,24 @@ function scitype(c::CategoricalValue)
     return ifelse(c.pool.ordered, OrderedFactor{nc}, Multiclass{nc})
 end
 
+# # LEVELS FOR ARRAYS OF ARRAYS
+
+const ERR_EMPTY_UNIVARIATE_FINITE = ArgumentError("Only missings found. ")
+
+"""
+    CategoricalDistributions.element_levels(vs)
+
+*Private method.*
+
+Return `levels(element)` for the first non-missing `element` of `vs`.
+
+"""
+function element_levels(vs::AbstractArray)
+    i = findfirst(!ismissing, vs)
+    i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
+    return classes(vs[i])
+end
+
 
 # # CATEGORICAL VALUES TO INTEGERS
 
@@ -83,7 +101,7 @@ pool as `x`. One can also call `d` on integer arrays, in which case
 See also: [`int`](@ref).
 
 """
-decoder(x) = CategoricalDecoder(classes(x))
+decoder(x) = CategoricalDecoder(levels(x))
 
 (d::CategoricalDecoder{V,R})(i::Integer) where {V,R} =
     CategoricalValue{V,R}(d.classes[i])
