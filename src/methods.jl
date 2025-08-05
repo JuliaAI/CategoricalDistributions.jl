@@ -24,7 +24,7 @@ Missings.levels(d::UnivariateFinite)  = d.decoder.classes
 function Dist.params(d::UnivariateFinite)
     raw = raw_support(d) # reflects order of pool at instantiation of d
     pairs = tuple([unwrap.(d.decoder(r))=>d.prob_given_ref[r] for r in raw]...)
-    levs = unwrap.(classes(d))
+    levs = unwrap.(levels(d))
     return (levels=levs, probs=pairs)
 end
 
@@ -42,7 +42,9 @@ Ordered list of classes associated with non-zero probabilities.
     Distributions.support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
 
 """
-Distributions.support(d::UnivariateFiniteUnion) = classes(d)[raw_support(d)]
+Distributions.support(d::UnivariateFinite) = levels(d)[raw_support(d)]
+Distributions.support(d::UnivariateFiniteArray) =
+    CategoricalDistributions.element_levels(d)[raw_support(d)]
 
 """
     fast_support(d::UnivariateFinite)
@@ -70,7 +72,9 @@ end
 # not exported:
 sample_scitype(d::UnivariateFiniteUnion) = d.scitype
 
-CategoricalArrays.isordered(d::UnivariateFiniteUnion) = isordered(classes(d))
+CategoricalArrays.isordered(d::UnivariateFinite) = isordered(levels(d))
+CategoricalArrays.isordered(d::UnivariateFiniteArray) =
+    isordered(CategoricalDistributions.element_levels(d))
 
 
 ## DISPLAY
@@ -155,7 +159,7 @@ See also `classes`, `support`.
 Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
 function Dist.pdf(d::UnivariateFinite{S,V,R,P}, c) where {S,V,R,P}
-    _classes = classes(d)
+    _classes = levels(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)
     return get(d.prob_given_ref, get(pool, c), zero(P))
@@ -355,7 +359,7 @@ function Dist.fit(d::Type{<:UnivariateFinite},
               "`CategoricalValue` type. ")
     y = broadcast(identity, skipmissing(v))
     isempty(y) && error("No non-missing data to fit. ")
-    classes_seen = filter(in(unique(y)), classes(y[1]))
+    classes_seen = filter(in(unique(y)), levels(y[1]))
 
     # instantiate and initialize prob dictionary:
     prob_given_class = LittleDict{C,Float64}()
@@ -384,3 +388,5 @@ end
 # which allows `pdf.(d::UnivariateFinite, support(d))` to work.
 
 Broadcast.broadcastable(d::UnivariateFinite) = Ref(d)
+
+

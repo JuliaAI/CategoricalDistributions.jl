@@ -312,7 +312,7 @@ function UnivariateFinite(
     # retrieve decoder and classes from first key:
     class1         = first(_support)
     parent_decoder = decoder(class1)
-    parent_classes = classes(class1)
+    parent_classes = levels(class1)
 
     # TODO: throw pre-defined exception below
 
@@ -351,7 +351,7 @@ function UnivariateFinite(d::AbstractDict{V,<:Prob};
     "specified pool to order. "
 
     raw_support = keys(d) |> collect
-    _classes = classes(pool)
+    _classes = levels(pool)
     issubset(raw_support, _classes) ||
         error("Specified support, $raw_support, not contained in "*
               "specified pool, $(levels(_classes)). ")
@@ -455,9 +455,9 @@ function _UnivariateFinite(support,
         end
         v = categorical(support, ordered=ordered, compress=true)
         levels!(v, support)
-        _support = classes(v)
+        _support = levels(v)
     else
-        _classes = classes(pool)
+        _classes = levels(pool)
         issubset(support, _classes) || throw(err_incompatible_pool(support, _classes))
         idxs = getindex.(
             Ref(CategoricalArrays.DataAPI.invrefpool(_classes)),

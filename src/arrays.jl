@@ -83,28 +83,29 @@ function Base.cat(us::UniFinArr{S,V,R,P,N}...;
     isempty(us) && return []
 
     # build combined raw_support and check compatibility of levels:
-    u1 = first(us)
-    ordered = isordered(classes(u1))
+    u1 = first(us) # an array!
+    _levs = CategoricalDistributions.element_levels(u1)
+    ordered = isordered(_levs)
     support_with_duplicates = Dist.support(u1)
-    _classes = classes(u1)
     for i in 2:length(us)
         isordered(us[i]) == ordered || throw(ERR_INCOMPATIBLE_LEVELS)
+        levs = CategoricalDistributions.element_levels(us[i])
         if ordered
-            classes(us[i]) == _classes || throw(ERR_INCOMPATIBLE_LEVELS)
+            levs == _levs || throw(ERR_INCOMPATIBLE_LEVELS)
         else
-            Set(classes(us[i])) == Set(_classes) || throw(ERR_INCOMPATIBLE_LEVELS)
+            Set(levs) == Set(_levs) || throw(ERR_INCOMPATIBLE_LEVELS)
         end
         support_with_duplicates = vcat(support_with_duplicates,
                                        Dist.support(us[i]))
     end
-    _support = unique(support_with_duplicates) # no-longer categorical!
+    _support = unique(support_with_duplicates)
 
     # build the combined `prob_given_class` dictionary:
     pairs = (class => cat((pdf.(u, class) for u in us)..., dims=dims)
              for class in _support)
     prob_given_class = Dict(pairs)
 
-    return UnivariateFinite(prob_given_class, pool=_classes)
+    return UnivariateFinite(prob_given_class) #, pool=_levs)
 end
 
 Base.vcat(us::UniFinArr...) = cat(us..., dims=1)
@@ -160,9 +161,7 @@ function Base.Broadcast.broadcasted(
     u::UniFinArr{S,V,R,P,N},
     cv::CategoricalValue) where {S,V,R,P,N}
 
-    # we assume that we compare categorical values by their unwrapped value
-    # and pick the index of this value from classes(u)
-    _classes = classes(u)
+    _classes = CategoricalDistributions.element_levels(u)
     cv_loc = get(CategoricalArrays.pool(_classes), cv, zero(R))
     isequal(cv_loc, 0) && throw(err_missing_class(cv))
 
@@ -191,7 +190,7 @@ function Base.Broadcast.broadcasted(
         "Arrays could not be broadcast to a common size; "*
         "got a dimension with lengths $(length(u)) and $(length(v))"))
 
-    _classes = classes(u)
+    _classes = CategoricalDistributions.element_levels(u)
     _classes_pool = CategoricalArrays.pool(_classes)
     T = eltype(v) >: Missing ? Missing : Union{}
     v_loc_flat = Vector{Tuple{Union{R, T}, Int}}(undef, length(v))
@@ -215,8 +214,7 @@ function Base.Broadcast.broadcasted(
     ::typeof(pdf),
     u::UniFinArr{S,V,R,P,N},
     raw::Union{V,AbstractArray{<:Union{Missing,V},N}}) where {S,V,R,P,N}
-
-    cat = transform(classes(u), raw)
+    cat = transform(CategoricalDistributions.element_levels(u), raw)
     return Base.Broadcast.broadcasted(pdf, u, cat)
 end
 
@@ -315,17 +313,4 @@ function Base.Broadcast.broadcasted(::typeof(modes),
         return u.decoder(M)
     end
     return reshape(mode_flat, size(u))
-end
-
-## EXTENSION OF CLASSES TO ARRAYS OF UNIVARIATE FINITE
-
-# We already have `classes(::UnivariateFininiteArray)
-
-const ERR_EMPTY_UNIVARIATE_FINITE = ArgumentError(
-    "No `UnivariateFinite` object found from which to extract classes. ")
-
-function classes(yhat::AbstractArray{<:Union{Missing,UnivariateFinite}})
-    i = findfirst(!ismissing, yhat)
-    i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
-    return classes(yhat[i])
 end
