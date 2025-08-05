@@ -3,33 +3,23 @@ const UnivariateFiniteUnion{S,V,R,P} =
     Union{UnivariateFinite{S,V,R,P}, UnivariateFiniteArray{S,V,R,P}}
 
 """
-    classes(d::UnivariateFinite)
-    classes(d::UnivariateFiniteArray)
-
-A list of categorial elements in the common pool of classes used to
-construct `d`.
-
-    v = categorical(["yes", "maybe", "no", "yes"])
-    d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    classes(d) # CategoricalArray{String,1,UInt32}["maybe", "no", "yes"]
-
-"""
-classes(d::UnivariateFiniteUnion) = d.decoder.classes
-
-"""
     levels(d::UnivariateFinite)
 
-A list of the raw levels in the common pool of classes used to
-construct `d`, equal to
-`CategoricalArrays.DataAPI.unwrap.(classes(d))`.
+Return the complete set of levels associated with `d` (the elements of the sample space)
+including those with zero associated probabilities. Zero-probability levels need not have
+appeared explicitly during the construction of `d`:
 
     v = categorical(["yes", "maybe", "no", "yes"])
     d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    levels(d) # Array{String, 1}["maybe", "no", "yes"]
+    levels(d) # CategoricalArray{String, 1, UInt32}["maybe", "no", "yes"]
+
+!!! note
+
+    Prior to CategoricalDistributions v0.2, this method returned *raw* levels, rather than
+    `CategoricalValue`'s, consistent with the behaviour CategoricalArrays prior to v1.0.
 
 """
-Missings.levels(d::UnivariateFinite)  =
-    CategoricalArrays.DataAPI.unwrap.(classes(d))
+Missings.levels(d::UnivariateFinite)  = d.decoder.classes
 
 function Dist.params(d::UnivariateFinite)
     raw = raw_support(d) # reflects order of pool at instantiation of d
