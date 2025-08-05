@@ -19,13 +19,13 @@ const Dist = Distributions
 
 import Distributions: pdf, logpdf, support, mode, modes
 
-include("deprecated.jl")
 include("utilities.jl")
 include("types.jl")
 include("scitypes.jl")
 include("methods.jl")
 include("arrays.jl")
 include("arithmetic.jl")
+include("deprecated.jl")
 
 export UnivariateFinite, UnivariateFiniteArray, UnivariateFiniteVector
 
