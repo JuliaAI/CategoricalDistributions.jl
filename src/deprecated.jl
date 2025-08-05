@@ -2,7 +2,7 @@
 
 # # CLASSES
 
-@deprecated classes(x::CategoricalValue) levels(x)
-@deprecated classes(v::CategoricalArray) levels(v)
-@deprecated classes(v::SubArray{<:Any, <:Any, <:CategoricalArray}) levels(v)
-@deprecated classes(d::UnivariateFinite) = levels(d)
+@deprecate classes(x::CategoricalValue) levels(x)
+@deprecate classes(v::CategoricalArray) levels(v)
+@deprecate classes(v::SubArray{<:Any, <:Any, <:CategoricalArray}) levels(v)
+@deprecate classes(d::UnivariateFinite) levels(d)
