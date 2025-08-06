@@ -35,9 +35,4 @@ export pdf, logpdf, support, mode, modes
 # re-export from ScientificTypesBase:
 export Multiclass, OrderedFactor
 
-# for julia < 1.9
-if !isdefined(Base, :get_extension)
-  include("../ext/UnivariateFiniteDisplayExt.jl")
-end
-
 end
