@@ -10,7 +10,7 @@ rng = StableRNG(123)
 using ScientificTypes
 import Random.default_rng
 
-import CategoricalDistributions: classes, ERR_NAN_FOUND
+import CategoricalDistributions: ERR_NAN_FOUND
 
 v = categorical(collect("asqfasqffqsaaaa"), ordered=true)
 V = categorical(collect("asqfasqffqsaaaa"))
@@ -24,15 +24,12 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     d    = UnivariateFinite(dict)
     dict_bimodal = Dict(a=>0.1, s=>0.1, q=>0.4, f=>0.4)
     d_bimodal    = UnivariateFinite(dict_bimodal)
-    @test classes(d) == [a, f, q, s]
-    @test classes(d) == classes(s)
+    @test levels(d) == [a, f, q, s]
+    @test levels(d) == levels(s)
     @test levels(d) == levels(s)
     @test support(d) == [f, q, s]
     @test support(d) == [CategoricalDistributions.fast_support(d)...]
     @test CategoricalDistributions.sample_scitype(d) == OrderedFactor{4}
-    # levels!(v, reverse(levels(v)))
-    # @test classes(d) == [s, q, f, a]
-    # @test support(d) == [s, q, f]
     @test ismissing(pdf(d, missing))
     @test pdf(d, s) ≈ 0.1
     @test pdf(d, 's') ≈ 0.1
@@ -79,14 +76,11 @@ A, S, Q, F = V[1], V[2], V[3], V[4]
     # unordered (Multiclass):
     dict = Dict(S=>0.1, Q=>0.2, F=>0.7)
     d    = UnivariateFinite(dict)
-    @test classes(d) == [a, f, q, s]
-    @test classes(d) == classes(s)
+    @test levels(d) == [a, f, q, s]
+    @test levels(d) == levels(s)
     @test levels(d) == levels(s)
     @test support(d) == [f, q, s]
     @test CategoricalDistributions.sample_scitype(d) == Multiclass{4}
-    # levels!(v, reverse(levels(v)))
-    # @test classes(d) == [s, q, f, a]
-    # @test support(d) == [s, q, f]
 
     @test pdf(d, S) ≈ 0.1
     @test pdf(d, 's') ≈ 0.1
@@ -217,8 +211,8 @@ end
     freq_given_class = Distributions.countmap(sample)
     pairs = collect(freq_given_class)
     sort!(pairs, by=pair->pair[2], alg=QuickSort)
-    sorted_classes = first.(pairs)
-    @test sorted_classes == ['c', 'a', 'b', 'd']
+    sorted_levels = first.(pairs)
+    @test sorted_levels == ['c', 'a', 'b', 'd']
 
     junk = categorical(['j',])
     j = junk[1]
@@ -252,7 +246,7 @@ end
 
     # regression test
     # https://github.com/alan-turing-institute/MLJBase.jl/pull/432/files#r502299301
-    d = UnivariateFinite(classes(categorical(UInt32[0, 1])), [0.4, 0.6])
+    d = UnivariateFinite(levels(categorical(UInt32[0, 1])), [0.4, 0.6])
     @test pdf(d, UInt32(1)) == 0.6
 end
 

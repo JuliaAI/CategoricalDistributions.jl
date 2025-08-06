@@ -22,7 +22,7 @@ Return `levels(element)` for the first non-missing `element` of `vs`.
 function element_levels(vs::AbstractArray)
     i = findfirst(!ismissing, vs)
     i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
-    return classes(vs[i])
+    return levels(vs[i])
 end
 
 

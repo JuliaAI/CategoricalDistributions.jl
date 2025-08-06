@@ -5,23 +5,28 @@ using CategoricalDistributions
 using CategoricalArrays
 using Random
 using StableRNGs
+using Suppressor
 
 rng = StableRNGs.StableRNG(123)
 
 import CategoricalDistributions: classes, transform, decoder, int
 
+# this block tests deprecated methods and can be removed in v0.3:
 @testset "classes" begin
-    v = categorical(collect("asqfasqffqsaaaa"), ordered=true)
-    @test classes(v[1]) == levels(v)
-    @test classes(v) == levels(v)
-    levels!(v, reverse(levels(v)))
-    @test classes(v[1]) == levels(v)
-    @test classes(v) == levels(v)
-    vsub = view(v, 1:2)
-    @test classes(vsub) == classes(v)
+    # (@suppressor blocks the depwarns in the test log)
+    @suppress begin
+        v = categorical(collect("asqfasqffqsaaaa"), ordered=true)
+        @test classes(v[1]) == levels(v)
+        @test classes(v) == levels(v)
+        levels!(v, reverse(levels(v)))
+        @test classes(v[1]) == levels(v)
+        @test classes(v) == levels(v)
+        vsub = view(v, 1:2)
+        @test classes(vsub) == classes(v)
+    end
 end
 
-@testset "int, classes, decoder" begin
+@testset "int, decoder" begin
     N = 10
     mix = shuffle(rng, 0:N - 1)
 
@@ -56,7 +61,7 @@ end
     e = decoder(y)
     @test e(int(W)) == W
 
-    @test int(classes(y)) == 1:length(classes(x))
+    @test int(levels(y)) == 1:length(levels(x))
 
     # int is based on ordering not index
     v = categorical(['a', 'b', 'c'], ordered=true)
@@ -87,23 +92,23 @@ end
 
     raw = first(skipmissing(Xraw))
     c = transform(element, raw)
-    @test Set(classes(c)) == Set(classes(X))
+    @test Set(levels(c)) == Set(levels(X))
     @test c == first(skipmissing(X))
 
     RAW = Xraw[2:end-1,2:end-1]
     C = transform(element, RAW)
-    @test Set(classes(C)) == Set(classes(X))
+    @test Set(levels(C)) == Set(levels(X))
     @test identity.(skipmissing(C)) ==
         identity.(skipmissing(X[2:end-1,2:end-1]))
 
     raw = first(skipmissing(Xraw))
     c = transform(X, raw)
-    @test Set(classes(c)) == Set(classes(X))
+    @test Set(levels(c)) == Set(levels(X))
     @test c == first(skipmissing(X))
 
     RAW = Xraw[2:end-1,2:end-1]
     C = transform(X, RAW)
-    @test Set(classes(C)) == Set(classes(X))
+    @test Set(levels(C)) == Set(levels(X))
     @test identity.(skipmissing(C)) ==
         identity.(skipmissing(X[2:end-1,2:end-1]))
 

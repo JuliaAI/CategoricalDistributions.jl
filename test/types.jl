@@ -7,7 +7,7 @@ using StableRNGs
 using FillArrays
 using ScientificTypes
 import Random
-import CategoricalDistributions: classes
+import CategoricalDistributions.element_levels
 
 # coverage of constructor testing is expanded in the other test files
 
@@ -26,7 +26,7 @@ import CategoricalDistributions: classes
 
     junk = ["F", "Q", "S"]
     @test_throws(
-        CategoricalDistributions.err_incompatible_pool(junk, classes(v)),
+        CategoricalDistributions.err_incompatible_pool(junk, levels(v)),
         UnivariateFinite(junk, [0.1, 0.9], pool=v),
     )
 
@@ -50,8 +50,8 @@ end
     probs2 = [0.1 0.2 0.7; 0.5 0.2 0.3; 0.8 0.1 0.1]
     unf1 = UnivariateFinite(["y", "x", "z"], probs1, pool=v)
     unf2 = UnivariateFinite(["y", "x", "z"], probs2, pool=v)
-    @test CategoricalArrays.pool(classes(unf1)) == CategoricalArrays.pool(v)
-    @test CategoricalArrays.pool(classes(unf2)) == CategoricalArrays.pool(v)
+    @test CategoricalArrays.pool(levels(unf1)) == CategoricalArrays.pool(v)
+    @test CategoricalArrays.pool(element_levels(unf2)) == CategoricalArrays.pool(v)
     @test pdf.(unf1, ["y", "x", "z"]) == probs1
     @test pdf.(unf2, "y") == probs2[:, 1]
     @test pdf.(unf2, "x") == probs2[:, 2]
