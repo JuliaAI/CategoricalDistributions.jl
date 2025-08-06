@@ -288,11 +288,10 @@ function Base.rand(
     u = rand(rng)
 
     total = zero(P)
-    
-    # For type stability we assign `zero(V)`` as the default ref
-    # This isn't a problem since we know that `rand` is always defined 
-    # as UnivariateFinite objects have non-negative probabilities,
-    # summing up to a non-negative value.
+
+    # For type stability we assign `zero(V)` as the default ref
+    # This isn't a problem since we assume here
+    # UnivariateFinite objects has non-negative probabilities.
     rng_key = zero(V)
     for (ref, prob) in pairs(d.prob_given_ref)
         total += prob
@@ -388,5 +387,3 @@ end
 # which allows `pdf.(d::UnivariateFinite, support(d))` to work.
 
 Broadcast.broadcastable(d::UnivariateFinite) = Ref(d)
-
-

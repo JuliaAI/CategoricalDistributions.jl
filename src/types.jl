@@ -1,10 +1,7 @@
 const DOC_CONSTRUCTOR =
 """
-    UnivariateFinite(support,
-                     probs;
-                     pool=nothing,
-                     augmented=false,
-                     ordered=false)
+```
+UnivariateFinite(support, probs; pool=nothing, augmented=false, ordered=false)
 
 Construct a discrete univariate distribution whose finite support is
 the elements of the vector `support`, and whose corresponding
@@ -13,16 +10,15 @@ construct an abstract *array* of `UnivariateFinite` distributions by
 choosing `probs` to be an array of one higher dimension than the array
 generated.
 
-Here the word "probabilities" is an abuse of terminology as there is
-no requirement that the that probabilities actually sum to one. The
-only requirement is that the probabilities have a common type `T` for
-which `zero(T)` is defined. In particular, `UnivariateFinite` objects
-implement arbitrary non-negative, signed, or complex measures over
-finite sets of labelled points. A `UnivariateDistribution` will be a
-bona fide probability measure when constructed using the
-`augment=true` option (see below) or when `fit` to data. And the
-probabilities of a `UnivariateFinite` object `d` must be non-negative,
-with a non-zero sum, for `rand(d)` to be defined and interpretable.
+`UnivariateFinite` objects can also be constructed from dictionaries; see below. 
+
+Here "probabilities" need not sum to one. The only requirement is that the probabilities
+have a common type `T` for which `zero(T)` is defined. In particular, `UnivariateFinite`
+objects implement arbitrary non-negative, signed, or complex measures over finite sets of
+labeled points. A `UnivariateDistribution` will be a bona fide probability measure when
+constructed using the `augment=true` option (see below) or when `fit` to data. And to
+support sampling with `rand`, probabilities must have a type that implements `>` and `+`
+and these probabilities must be non-negative, support addition, and not all zero, for
 
 Unless `pool` is specified, `support` should have type
  `AbstractVector{<:CategoricalValue}` and all elements are assumed to
@@ -32,12 +28,11 @@ Unless `pool` is specified, `support` should have type
 probabilities, not just those in the specified `support`. However,
 these probabilities are always zero (see example below).
 
-If `probs` is a matrix, it should have a column for each class in
-`support` (or one less, if `augment=true`). More generally, `probs`
-will be an array whose size is of the form `(n1, n2, ..., nk, c)`,
-where `c = length(support)` (or one less, if `augment=true`) and the
-constructor then returns an array of `UnivariateFinite` distributions
-of size `(n1, n2, ..., nk)`.
+If `probs` is a matrix, it should have a column for each class (level) in `support` (or
+one less, if `augment=true`). More generally, `probs` will be an array whose size is of
+the form `(n1, n2, ..., nk, c)`, where `c = length(support)` (or one less, if
+`augment=true`) and the constructor then returns an array of `UnivariateFinite`
+distributions of size `(n1, n2, ..., nk)`.
 
 ```
 using CategoricalDistributions, CategoricalArrays, Distributions
@@ -74,7 +69,7 @@ julia> pdf(d, 'y')
 0.0
 ```
 
-### Specifying a pool
+# Specifying a pool
 
 Alternatively, `support` may be a list of raw (non-categorical)
 elements if `pool` is:
@@ -118,7 +113,7 @@ julia> d1 = UnivariateFinite(['x', 'y', 'z'], probs, pool=v)
  UnivariateFinite{Multiclass{4}}(x=>0.292, y=>0.339, z=>0.369)
 ```
 
-### Probability augmentation
+# Probability augmentation
 
 If `augment=true` the provided array is augmented by inserting
 appropriate elements *ahead* of those provided, along the last
