@@ -170,8 +170,9 @@ Transform the specified object `X` into a categorical version, using
 the pool contained in `e`. Here `X` is a raw value (an element of
 `levels(e)`) or an `AbstractArray` of such values.
 
-```julia
-v = categorical(["x", "y", "y", "x", "x"])
+```julia-repl
+julia> v = categorical(["x", "y", "y", "x", "x"]);
+
 julia> transform(v, "x")
 CategoricalValue{String,UInt32} "x"
 
@@ -179,6 +180,7 @@ julia> transform(v[1], ["x" "x"; missing "y"])
 2×2 CategoricalArray{Union{Missing, Symbol},2,UInt32}:
  "x"       "x"
  missing   "y"
+```
 
 **Private method.**
 

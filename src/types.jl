@@ -39,10 +39,13 @@ where `c = length(support)` (or one less, if `augment=true`) and the
 constructor then returns an array of `UnivariateFinite` distributions
 of size `(n1, n2, ..., nk)`.
 
-```
-using CategoricalDistributions, CategoricalArrays, Distributions
-samples = categorical(['x', 'x', 'y', 'x', 'z'])
+```julia-repl
+julia> using CategoricalDistributions, CategoricalArrays, Distributions
+
+julia> samples = categorical(['x', 'x', 'y', 'x', 'z']);
+
 julia> Distributions.fit(UnivariateFinite, samples)
+UnivariateFinite{Multiclass{3}}(x=>0.6, y=>0.2, z=>0.2)
            UnivariateFinite{Multiclass{3}}
      ┌                                        ┐
    x ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.6
@@ -59,16 +62,16 @@ UnivariateFinite{Multiclass{3}(x=>0.1, z=>0.9)
      └                                        ┘
 
 julia> rand(d, 3)
-3-element Array{Any,1}:
- CategoricalValue{Symbol,UInt32} 'z'
- CategoricalValue{Symbol,UInt32} 'z'
- CategoricalValue{Symbol,UInt32} 'z'
+3-element Vector{CategoricalValue{Char, UInt32}}:
+ 'z'
+ 'z'
+ 'z'
 
 julia> levels(samples)
-3-element Array{Symbol,1}:
- 'x'
- 'y'
- 'z'
+3-element Vector{Char}:
+ 'x': ASCII/Unicode U+0078 (category Ll: Letter, lowercase)
+ 'y': ASCII/Unicode U+0079 (category Ll: Letter, lowercase)
+ 'z': ASCII/Unicode U+007A (category Ll: Letter, lowercase)
 
 julia> pdf(d, 'y')
 0.0
@@ -88,16 +91,19 @@ elements if `pool` is:
 In the last case, specify `ordered=true` if the pool is to be
 considered ordered.
 
-```
+```julia-repl
 julia> UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=missing, ordered=true)
+UnivariateFinite{OrderedFactor{2}}(x=>0.1, z=>0.9)
          UnivariateFinite{OrderedFactor{2}}
      ┌                                        ┐
    x ┤■■■■ 0.1
    z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
      └                                        ┘
 
-samples = categorical(['x', 'x', 'y', 'x', 'z'])
+julia> samples = categorical(['x', 'x', 'y', 'x', 'z']);
 julia> d = UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=samples)
+UnivariateFinite{Multiclass{3}}(x=>0.1, z=>0.9)
+
      ┌                                        ┐
    x ┤■■■■ 0.1
    z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
@@ -106,11 +112,13 @@ julia> d = UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=samples)
 julia> pdf(d, 'y') # allowed as `'y' in levels(samples)`
 0.0
 
-v = categorical(['x', 'x', 'y', 'x', 'z', 'w'])
-probs = rand(100, 3)
-probs = probs ./ sum(probs, dims=2)
+julia> v = categorical(['x', 'x', 'y', 'x', 'z', 'w']);
+
+julia> probs = rand(100, 3);
+julia> probs = probs ./ sum(probs, dims=2);
+
 julia> d1 = UnivariateFinite(['x', 'y', 'z'], probs, pool=v)
-100-element UnivariateFiniteVector{Multiclass{4},Symbol,UInt32,Float64}:
+100-element UnivariateFiniteVector{Multiclass{4}, Char, UInt32, Float64}:
  UnivariateFinite{Multiclass{4}}(x=>0.194, y=>0.3, z=>0.505)
  UnivariateFinite{Multiclass{4}}(x=>0.727, y=>0.234, z=>0.0391)
  UnivariateFinite{Multiclass{4}}(x=>0.674, y=>0.00535, z=>0.321)
@@ -127,14 +135,14 @@ for the classes `c2, c3, ..., cn`. The class `c1` probabilities are
 chosen so that each `UnivariateFinite` distribution in the returned
 array is a bona fide probability distribution.
 
-```julia
+```julia-repl
 julia> UnivariateFinite([0.1, 0.2, 0.3], augment=true, pool=missing)
 3-element UnivariateFiniteArray{Multiclass{2}, String, UInt8, Float64, 1}:
  UnivariateFinite{Multiclass{2}}(class_1=>0.9, class_2=>0.1)
  UnivariateFinite{Multiclass{2}}(class_1=>0.8, class_2=>0.2)
  UnivariateFinite{Multiclass{2}}(class_1=>0.7, class_2=>0.3)
 
-d2 = UnivariateFinite(['x', 'y', 'z'], probs[:, 2:end], augment=true, pool=v)
+julia> d2 = UnivariateFinite(['x', 'y', 'z'], probs[:, 2:end], augment=true, pool=v);
 julia> pdf(d1, levels(v)) ≈ pdf(d2, levels(v))
 true
 ```
