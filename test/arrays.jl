@@ -10,8 +10,9 @@ import Random
 using Missings
 using ScientificTypes
 
-import CategoricalDistributions: classes, ERR_NAN_FOUND
+import CategoricalDistributions: ERR_NAN_FOUND
 import CategoricalArrays.unwrap
+import CategoricalDistributions.element_levels
 
 rng = StableRNG(111)
 n   = 10
@@ -23,8 +24,8 @@ c   = 3
     d = UnivariateFinite(["ying", "yang"], 0.3, augment=true,
                          ordered=true, pool=missing)
     @test pdf(d, "yang") == 0.3
-    @test classes(d)[1] == "ying"
-    d = UnivariateFinite(classes(d), 0.3, augment=true)
+    @test levels(d)[1] == "ying"
+    d = UnivariateFinite(levels(d), 0.3, augment=true)
     @test pdf(d, "yang") == 0.3
 end
 
@@ -33,14 +34,13 @@ end
     probs  = rand(rng, n)
     supp = ["class1", "class2"]
 
-    # @test_throws DomainError UnivariateFinite(supp, probs, pool=missing)
+    @test_throws DimensionMismatch UnivariateFinite(supp, probs, pool=missing)
     u = UnivariateFinite(supp, probs, pool=missing, augment=true)
     @test length(u) == n
     @test size(u) == (n,)
     @test pdf.(u, "class2") ≈ probs
 
     # autosupport:
-    # @test_throws DomainError UnivariateFinite(probs, pool=missing)
     u = UnivariateFinite(probs, pool=missing, augment=true)
     @test length(u) == n
     @test size(u) == (n,)
@@ -109,8 +109,8 @@ end
 
 n = 10
 P = rand(rng, n);
-all_classes = categorical(["no", "yes"], ordered=true)
-u = UnivariateFinite(all_classes, P, augment=true) #uni_fin_arr
+all_levels = categorical(["no", "yes"], ordered=true)
+u = UnivariateFinite(all_levels, P, augment=true) #uni_fin_arr
 
 # next is not specific to `UnivariateFiniteArray` but is for any
 # abstract array with eltype `UnivariateFinite`:
@@ -119,15 +119,15 @@ u = UnivariateFinite(all_classes, P, augment=true) #uni_fin_arr
     # logpdf(uni_fin_arr, labels)
     @test pdf(u, ["yes", "no"]) == hcat(P, 1 .- P)
     @test isequal(logpdf(u, ["yes", "no"]), log.(hcat(P, 1 .- P)))
-    @test pdf(u, reverse(all_classes)) == hcat(P, 1 .- P)
-    @test isequal(logpdf(u, reverse(all_classes)), log.(hcat(P, 1 .- P)))
+    @test pdf(u, reverse(all_levels)) == hcat(P, 1 .- P)
+    @test isequal(logpdf(u, reverse(all_levels)), log.(hcat(P, 1 .- P)))
 
     # test pdf(::Array{UnivariateFinite, 1}, labels) and
     # logpdf(::Array{UnivariateFinite, labels)
     @test pdf([u...], ["yes", "no"]) == hcat(P, 1 .- P)
     @test isequal(logpdf([u...], ["yes", "no"]), log.(hcat(P, 1 .- P)))
-    @test pdf([u...], all_classes) == hcat(1 .- P, P)
-    @test isequal(logpdf([u...], all_classes), log.(hcat(1 .- P, P)))
+    @test pdf([u...], all_levels) == hcat(1 .- P, P)
+    @test isequal(logpdf([u...], all_levels), log.(hcat(1 .- P, P)))
 end
 
 @testset "broadcasting: pdf.(uni_fin_arr, scalar) and logpdf.(uni_fin_arr, scalar) " begin
@@ -140,8 +140,8 @@ end
 
     @test pdf.(u,"yes") == P
     @test isequal(logpdf.(u,"yes"), log.(P))
-    @test pdf.(u,all_classes[2]) == P
-    @test isequal(logpdf.(u,all_classes[2]), log.(P))
+    @test pdf.(u,all_levels[2]) == P
+    @test isequal(logpdf.(u,all_levels[2]), log.(P))
 
     # check unseen probablities are a zero *array*:
     v = categorical(1:4)
@@ -157,7 +157,7 @@ end
 _skip(v) = collect(skipmissing(v))
 
 @testset "broadcasting: pdf.(uni_fin_arr, array_same_shape) and logpdf.(uni_fin_arr, array_same_shape)" begin
-    v0 = categorical(rand(rng, string.(classes(u)), n))
+    v0 = categorical(rand(rng, string.(element_levels(u)), n))
     vm = vcat(v0[1:end-1], [missing, ])
     for v in [v0, vm]
         @test _skip(broadcast(pdf, u, v)) ==
@@ -273,7 +273,7 @@ end
     us = (u1, u2)
     u = cat(us..., dims=1)
     @test length(u) == length(u1) + length(u2)
-    @test classes(u) == classes(u1)
+    @test element_levels(u) == element_levels(u1)
     supp = Distributions.support(u)
     @test Set(supp) == Set(["no", "yes", "maybe"])
     s1 = Distributions.support(u1)
@@ -293,7 +293,7 @@ end
     us = (u1, u2)
     u = cat(us..., dims=1)
     @test length(u) == length(u1) + length(u2)
-    @test classes(u) == classes(u1)
+    @test element_levels(u) == element_levels(u1)
     supp = Distributions.support(u)
     @test Set(supp) == Set(["no", "yes", "maybe"])
     s1 = Distributions.support(u1)
@@ -321,24 +321,24 @@ end
     probs = rand(rng, 3)
     u1 = UnivariateFinite(v1, probs, augment=true)
     u2 = UnivariateFinite(v2, probs, augment=true)
-    @test_throws DomainError vcat(u1, u2)
+    @test_throws CategoricalDistributions.ERR_INCOMPATIBLE_LEVELS vcat(u1, u2)
 
     v1 = categorical(1:2)
     v2 = categorical(2:3)
     u1 = UnivariateFinite(v1, probs, augment=true)
     u2 = UnivariateFinite(v2, probs, augment=true)
-    @test_throws DomainError vcat(u1, u2)
+    @test_throws CategoricalDistributions.ERR_INCOMPATIBLE_LEVELS vcat(u1, u2)
 
 end
 
-@testset "classes" begin
+@testset "element_levels" begin
     v = categorical(collect("abca"), ordered=true)
     u1 = UnivariateFinite([v[1], v[2]], rand(rng, 5), augment=true)
-    @test classes(u1) == collect("abc")
+    @test element_levels(u1) == collect("abc")
     u2 = [missing, u1...]
-    @test classes(u2) == collect("abc")
+    @test element_levels(u2) == collect("abc")
     @test_throws(CategoricalDistributions.ERR_EMPTY_UNIVARIATE_FINITE,
-                 classes(u2[1:1]))
+                 element_levels(u2[1:1]))
 end
 
 function ≅(x::T, y::T) where {T<:UnivariateFinite}

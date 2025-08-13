@@ -50,6 +50,16 @@ julia> mode(d)
 CategoricalValue{String, UInt32} "no"
 ```
 
+Of course, a `UnivariateFinite` object can be sampled:
+
+```julia
+julia> rand(d, 5)
+3-element Vector{CategoricalValue{String, UInt32}}:
+ "no"
+ "no"
+ "maybe"
+```
+
 A `UnivariateFinite` distribution can also be constructed directly
 from a probability vector:
 
@@ -62,11 +72,11 @@ julia> d2 = UnivariateFinite(["no", "yes"], [0.15, 0.85], pool=data)
        └                                        ┘
 ```
 
-A `UnivariateFinite` distribution tracks all classes in the pool:
+A `UnivariateFinite` distribution tracks all classes (levels) in the pool:
 
 ```julia
 levels(d2)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "maybe"
  "no"
  "yes"
@@ -106,7 +116,7 @@ probability array:
 
 ```julia
 julia> L = levels(data)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "maybe"
  "no"
  "yes"
@@ -121,26 +131,28 @@ julia> pdf(v, L)
 
 ## Measures over finite labeled sets
 
-There is, in fact, no enforcement that probabilities in a
-`UnivariateFinite` distribution sum to one, only that they be belong
-to a type `T` for which `zero(T)` is defined. In particular
-`UnivariateFinite` objects implement arbitrary non-negative, signed,
-or complex measures over a finite labeled set.
+There is, in fact, no enforcement that probabilities in a `UnivariateFinite` distribution
+sum to one, only that they be belong to a type `T` for which `zero(T)` is defined. In
+particular `UnivariateFinite` objects implement arbitrary non-negative, signed, or complex
+measures over a finite labeled set. 
+
+However, you cannot sample using `pdf` unless "probabilities" are non-negative (their type
+`T` must support `>` and addition).
 
 ## What does this package provide?
 
-- A new type `UnivariateFinite{S}` for representing probability
-  distributions over the pool of a `CategoricalArray`, that is, over
-  finite *labeled* sets. Here `S` is a subtype of `OrderedFactor`
-  from ScientificTypesBase.jl, if the pool is ordered, or of
-  `Multiclass` if the pool is unordered.
+- A new type `UnivariateFinite{S}` for representing probability distributions over the
+  pool of a `CategoricalArray`, that is, over finite *labeled* sets. Here `S` is a subtype
+  of `OrderedFactor` from
+  [ScientificTypesBase.jl](https://github.com/JuliaAI/ScientificTypesBase.jl), if the pool
+  is ordered, or of `Multiclass` if the pool is unordered.
 
 - A new array type `UnivariateFiniteArray{S} <:
   AbstractArray{<:UnivariateFinite{S}}` for efficiently manipulating
   arrays of `UnivariateFinite` distributions.
 
-- Implementations of `rand` for generating random samples of a
-  `UnivariateFinite` distribution.
+- Implementations of `rand` for generating random samples of a `UnivariateFinite`
+  distribution, in the case that "probabilities" come from an ordered field.
 
 - Implementations of the `pdf`, `logpdf`, `mode` and `modes` methods of
   Distributions.jl, with efficient broadcasting over the new array

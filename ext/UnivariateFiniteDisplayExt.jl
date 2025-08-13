@@ -8,9 +8,11 @@ import UnicodePlots
 import ScientificTypes.Finite
 
 # The following is a specialization of a `show` method already in /src/ for the common
-# case of `Real` probabilities.
+# case of certain numerical  probabilities.
+
+const Numerical = Union{AbstractFloat,Integer}
 function Base.show(io::IO, mime::MIME"text/plain",
-                   d::UnivariateFinite{<:Finite{K},V,R,P}) where {K,V,R,P<:Real}
+                   d::UnivariateFinite{<:Finite{K},V,R,P}) where {K,V,R,P<:Numerical}
     show_bars = false
     if K <= MAX_NUM_LEVELS_TO_SHOW_BARS &&
         all(>=(0), values(d.prob_given_ref))

@@ -7,59 +7,25 @@ function scitype(c::CategoricalValue)
     return ifelse(c.pool.ordered, OrderedFactor{nc}, Multiclass{nc})
 end
 
+# # LEVELS FOR ARRAYS OF ARRAYS
 
-
-# # CLASSES
+const ERR_EMPTY_UNIVARIATE_FINITE = ArgumentError("Only missings found. ")
 
 """
-    classes(x)
+    CategoricalDistributions.element_levels(vs)
 
-Return, as a `CategoricalVector`, all the categorical elements with
-the same pool as `CategoricalValue` `x` (including `x`), with an
-ordering consistent with the pool. Note that `x in classes(x)` is
-always true.
 
-Not to be confused with `levels(x.pool)`. See the example below.
+*Private method.*
 
-Also, overloaded for `x` a `CategoricalArray`, `CategoricalPool`, and
-for views of `CategoricalArray`.
+Return `levels(element)` for the first non-missing `element` of `vs`.
 
-**Private method.*
-
-```julia-repl
-julia> v = categorical(["c", "b", "c", "a"])
-4-element CategoricalArray{String,1,UInt32}:
- "c"
- "b"
- "c"
- "a"
-
-julia> levels(v)
-3-element Vector{String}:
- "a"
- "b"
- "c"
-
-julia> x = v[4]
-CategoricalValue{String, UInt32} "a"
-
-julia> classes(x)
-3-element CategoricalArray{String,1,UInt32}:
- "a"
- "b"
- "c"
-
-julia> levels(x.pool)
-3-element Vector{String}:
- "a"
- "b"
- "c"
-```
 """
-classes(p::CategoricalPool) = [p[i] for i in 1:length(p)]
-classes(x::CategoricalValue) = classes(CategoricalArrays.pool(x))
-classes(v::CategoricalArray) = classes(CategoricalArrays.pool(v))
-classes(v::SubArray{<:Any, <:Any, <:CategoricalArray}) = classes(parent(v))
+function element_levels(vs::AbstractArray)
+    i = findfirst(!ismissing, vs)
+    i === nothing && throw(ERR_EMPTY_UNIVARIATE_FINITE)
+    return levels(vs[i])
+end
+
 
 # # CATEGORICAL VALUES TO INTEGERS
 
@@ -79,13 +45,13 @@ int(W::AbstractArray{<:CategoricalValue})
 Broadcasted versions of `int`.
 
 ```julia-repl
-julia> v = categorical(["c", "b", "c", "a"]);
-
+julia> v = categorical(['c', 'b', 'c', 'a']);
 julia> levels(v)
-3-element Vector{String}:
- "a"
- "b"
- "c"
+4-element CategoricalArray{Char,1,UInt32}:
+ 'c'
+ 'b'
+ 'c'
+ 'a'
 
 julia> int(v)
 4-element Vector{UInt32}:
@@ -144,7 +110,7 @@ true
 See also: [`int`](@ref).
 
 """
-decoder(x) = CategoricalDecoder(classes(x))
+decoder(x) = CategoricalDecoder(levels(x))
 
 (d::CategoricalDecoder{V,R})(i::Integer) where {V,R} =
     CategoricalValue{V,R}(d.classes[i])
@@ -166,9 +132,11 @@ _transform(pool, X::AbstractArray) = broadcast(x -> _transform(pool, x), X)
 """
     transform(e::Union{CategoricalElement,CategoricalArray,CategoricalPool},  X)
 
+**Private method.**
+
 Transform the specified object `X` into a categorical version, using
 the pool contained in `e`. Here `X` is a raw value (an element of
-`levels(e)`) or an `AbstractArray` of such values.
+`unwrap.(levels(e))`) or an `AbstractArray` of such values.
 
 ```julia-repl
 julia> v = categorical(["x", "y", "y", "x", "x"]);
@@ -182,7 +150,6 @@ julia> transform(v[1], ["x" "x"; missing "y"])
  missing   "y"
 ```
 
-**Private method.**
 
 """
 transform(e::Union{CategoricalArray, CategoricalValue},
