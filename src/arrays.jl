@@ -97,7 +97,7 @@ function Base.cat(us::UniFinArr{S,V,R,P,N}...;
              for class in _support)
     prob_given_class = Dict(pairs)
 
-    return UnivariateFinite(prob_given_class) #, pool=_levs)
+    return UnivariateFinite(prob_given_class)
 end
 
 Base.vcat(us::UniFinArr...) = cat(us..., dims=1)
