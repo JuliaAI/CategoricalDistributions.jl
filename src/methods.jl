@@ -21,6 +21,19 @@ appeared explicitly during the construction of `d`:
 """
 Missings.levels(d::UnivariateFinite)  = d.decoder.classes
 
+"""
+    Distributions.params(d::UnivariateFinite)
+
+Return a named tuple with keys `:levels` and `:probs`:
+
+- `:levels`: The elements of the sample space of `d` as raw values (as opposed to
+  `CategoricalValue`s); the same as
+  `CategoricalArrays.unwrap.(CategoricalArrays.levels(d))`
+
+- `:probs`: A tuple of pairs of the form `level => probability` (probabilities are allowed
+  to have non-unit sum)
+
+"""
 function Dist.params(d::UnivariateFinite)
     raw = raw_support(d) # reflects order of pool at instantiation of d
     pairs = tuple([unwrap.(d.decoder(r))=>d.prob_given_ref[r] for r in raw]...)
