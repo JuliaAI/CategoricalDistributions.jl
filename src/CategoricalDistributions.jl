@@ -1,5 +1,6 @@
 module CategoricalDistributions
 
+using Reexport
 import Distributions
 import ScientificTypes:
     Finite,
@@ -10,7 +11,7 @@ import ScientificTypes:
     ScientificTypesBase
 
 using OrderedCollections
-using CategoricalArrays
+@reexport using CategoricalArrays
 import Missings
 using Random
 
@@ -24,6 +25,7 @@ include("scitypes.jl")
 include("methods.jl")
 include("arrays.jl")
 include("arithmetic.jl")
+include("deprecated.jl")
 
 export UnivariateFinite, UnivariateFiniteArray, UnivariateFiniteVector
 
@@ -32,10 +34,5 @@ export pdf, logpdf, support, mode, modes
 
 # re-export from ScientificTypesBase:
 export Multiclass, OrderedFactor
-
-# for julia < 1.9
-if !isdefined(Base, :get_extension)
-  include("../ext/UnivariateFiniteDisplayExt.jl")
-end
 
 end
