@@ -69,14 +69,6 @@ const ERR_INCOMPATIBLE_LEVELS = DomainError(
     "or whose levels, when ordered, are not  " *
     "consistently ordered. ")
 
-# terminology:
-
-# "classes"  - full pool of `CategoricalElement`s, even "unseen" ones (those
-#             missing from support)
-# "levels"   - same thing but in raw form (eg, `Symbol`s) aka "labels"
-# "suppport" - those classes with a corresponding probability (the ones
-#              named at time of construction of the `UnivariateFiniteArray`)
-
 function Base.cat(us::UniFinArr{S,V,R,P,N}...;
                   dims::Integer) where {S,V,R,P,N}
 
