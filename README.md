@@ -4,10 +4,10 @@ Probability distributions and measures for finite sample spaces whose
 elements are *labeled* (consist of the class pool of a
 `CategoricalArray`).
 
-Designed for performance in machine learning applications. For
+Designed for performance in machine learning applications, where one is constructing large arrays of such distributions. For
 example, probabilistic classifiers in
 [MLJ](https://alan-turing-institute.github.io/MLJ.jl/dev/) typically
-predict the `UnivariateFiniteVector` objects defined in this package.
+predict the `UnivariateFiniteArray` objects defined in this package.
 
 For probability distributions over integers see the
 [Distributions.jl](https://juliastats.org/Distributions.jl/stable/univariate/#Discrete-Distributions)
