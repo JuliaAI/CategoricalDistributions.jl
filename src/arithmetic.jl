@@ -10,13 +10,13 @@ pdf_matrix(d::UnivariateFinite, L) = pdf.(d, L)
 pdf_matrix(d::AbstractArray{<:UnivariateFinite}, L) = pdf(d, L)
 
 function +(d1::UnivariateFinite{S, V}, d2::UnivariateFinite{S, V}) where {S, V}
-    L = classes(d1)
-    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    L = levels(d1)
+    L == levels(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) + pdf_matrix(d2, L))
 end
 function +(d1::UnivariateFiniteArray{S, V}, d2::UnivariateFiniteArray{S, V}) where {S, V}
-    L = classes(d1)
-    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    L = CategoricalDistributions.element_levels(d1)
+    L == CategoricalDistributions.element_levels(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) + pdf_matrix(d2, L))
 end
 
@@ -33,13 +33,13 @@ end
 -(d::UnivariateFiniteArray) = _minus(d, UnivariateFiniteArray)
 
 function -(d1::UnivariateFinite{S, V}, d2::UnivariateFinite{S, V}) where {S, V}
-    L = classes(d1)
-    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    L = levels(d1)
+    L == levels(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) - pdf_matrix(d2, L))
 end
 function -(d1::UnivariateFiniteArray{S, V}, d2::UnivariateFiniteArray{S, V}) where {S, V}
-    L = classes(d1)
-    L == classes(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
+    L = CategoricalDistributions.element_levels(d1)
+    L == CategoricalDistributions.element_levels(d2) || throw(ERR_DIFFERENT_SAMPLE_SPACES)
     return UnivariateFinite(L, pdf_matrix(d1, L) - pdf_matrix(d2, L))
 end
 

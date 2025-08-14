@@ -1,10 +1,7 @@
 const DOC_CONSTRUCTOR =
 """
-    UnivariateFinite(support,
-                     probs;
-                     pool=nothing,
-                     augmented=false,
-                     ordered=false)
+```
+UnivariateFinite(support, probs; pool=nothing, augmented=false, ordered=false)
 
 Construct a discrete univariate distribution whose finite support is
 the elements of the vector `support`, and whose corresponding
@@ -13,16 +10,15 @@ construct an abstract *array* of `UnivariateFinite` distributions by
 choosing `probs` to be an array of one higher dimension than the array
 generated.
 
-Here the word "probabilities" is an abuse of terminology as there is
-no requirement that the that probabilities actually sum to one. The
-only requirement is that the probabilities have a common type `T` for
-which `zero(T)` is defined. In particular, `UnivariateFinite` objects
-implement arbitrary non-negative, signed, or complex measures over
-finite sets of labelled points. A `UnivariateDistribution` will be a
-bona fide probability measure when constructed using the
-`augment=true` option (see below) or when `fit` to data. And the
-probabilities of a `UnivariateFinite` object `d` must be non-negative,
-with a non-zero sum, for `rand(d)` to be defined and interpretable.
+`UnivariateFinite` objects can also be constructed from dictionaries; see below. 
+
+Here "probabilities" need not sum to one. The only requirement is that the probabilities
+have a common type `T` for which `zero(T)` is defined. In particular, `UnivariateFinite`
+objects implement arbitrary non-negative, signed, or complex measures over finite sets of
+labeled points. A `UnivariateDistribution` will be a bona fide probability measure when
+constructed using the `augment=true` option (see below) or when `fit` to data. And to
+support sampling with `rand`, probabilities must have a type that implements `>` and `+`
+and these probabilities must be non-negative, support addition, and not all zero, for
 
 Unless `pool` is specified, `support` should have type
  `AbstractVector{<:CategoricalValue}` and all elements are assumed to
@@ -32,17 +28,19 @@ Unless `pool` is specified, `support` should have type
 probabilities, not just those in the specified `support`. However,
 these probabilities are always zero (see example below).
 
-If `probs` is a matrix, it should have a column for each class in
-`support` (or one less, if `augment=true`). More generally, `probs`
-will be an array whose size is of the form `(n1, n2, ..., nk, c)`,
-where `c = length(support)` (or one less, if `augment=true`) and the
-constructor then returns an array of `UnivariateFinite` distributions
-of size `(n1, n2, ..., nk)`.
+If `probs` is a matrix, it should have a column for each class (level) in `support` (or
+one less, if `augment=true`). More generally, `probs` will be an array whose size is of
+the form `(n1, n2, ..., nk, c)`, where `c = length(support)` (or one less, if
+`augment=true`) and the constructor then returns an array of `UnivariateFinite`
+distributions of size `(n1, n2, ..., nk)`.
 
-```
-using CategoricalDistributions, CategoricalArrays, Distributions
-samples = categorical(['x', 'x', 'y', 'x', 'z'])
+```julia-repl
+julia> using CategoricalDistributions, CategoricalArrays, Distributions
+
+julia> samples = categorical(['x', 'x', 'y', 'x', 'z']);
+
 julia> Distributions.fit(UnivariateFinite, samples)
+UnivariateFinite{Multiclass{3}}(x=>0.6, y=>0.2, z=>0.2)
            UnivariateFinite{Multiclass{3}}
      ┌                                        ┐
    x ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.6
@@ -59,13 +57,13 @@ UnivariateFinite{Multiclass{3}(x=>0.1, z=>0.9)
      └                                        ┘
 
 julia> rand(d, 3)
-3-element Array{Any,1}:
- CategoricalValue{Symbol,UInt32} 'z'
- CategoricalValue{Symbol,UInt32} 'z'
- CategoricalValue{Symbol,UInt32} 'z'
+3-element Vector{CategoricalValue{Char, UInt32}}:
+ 'z'
+ 'z'
+ 'z'
 
 julia> levels(samples)
-3-element Array{Symbol,1}:
+3-element CategoricalArray{Char,1,UInt32}:
  'x'
  'y'
  'z'
@@ -74,7 +72,7 @@ julia> pdf(d, 'y')
 0.0
 ```
 
-### Specifying a pool
+# Specifying a pool
 
 Alternatively, `support` may be a list of raw (non-categorical)
 elements if `pool` is:
@@ -88,16 +86,19 @@ elements if `pool` is:
 In the last case, specify `ordered=true` if the pool is to be
 considered ordered.
 
-```
+```julia-repl
 julia> UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=missing, ordered=true)
+UnivariateFinite{OrderedFactor{2}}(x=>0.1, z=>0.9)
          UnivariateFinite{OrderedFactor{2}}
      ┌                                        ┐
    x ┤■■■■ 0.1
    z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
      └                                        ┘
 
-samples = categorical(['x', 'x', 'y', 'x', 'z'])
+julia> samples = categorical(['x', 'x', 'y', 'x', 'z']);
 julia> d = UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=samples)
+UnivariateFinite{Multiclass{3}}(x=>0.1, z=>0.9)
+
      ┌                                        ┐
    x ┤■■■■ 0.1
    z ┤■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 0.9
@@ -106,11 +107,13 @@ julia> d = UnivariateFinite(['x', 'z'], [0.1, 0.9], pool=samples)
 julia> pdf(d, 'y') # allowed as `'y' in levels(samples)`
 0.0
 
-v = categorical(['x', 'x', 'y', 'x', 'z', 'w'])
-probs = rand(100, 3)
-probs = probs ./ sum(probs, dims=2)
+julia> v = categorical(['x', 'x', 'y', 'x', 'z', 'w']);
+
+julia> probs = rand(100, 3);
+julia> probs = probs ./ sum(probs, dims=2);
+
 julia> d1 = UnivariateFinite(['x', 'y', 'z'], probs, pool=v)
-100-element UnivariateFiniteVector{Multiclass{4},Symbol,UInt32,Float64}:
+100-element UnivariateFiniteVector{Multiclass{4}, Char, UInt32, Float64}:
  UnivariateFinite{Multiclass{4}}(x=>0.194, y=>0.3, z=>0.505)
  UnivariateFinite{Multiclass{4}}(x=>0.727, y=>0.234, z=>0.0391)
  UnivariateFinite{Multiclass{4}}(x=>0.674, y=>0.00535, z=>0.321)
@@ -118,7 +121,7 @@ julia> d1 = UnivariateFinite(['x', 'y', 'z'], probs, pool=v)
  UnivariateFinite{Multiclass{4}}(x=>0.292, y=>0.339, z=>0.369)
 ```
 
-### Probability augmentation
+# Probability augmentation
 
 If `augment=true` the provided array is augmented by inserting
 appropriate elements *ahead* of those provided, along the last
@@ -127,14 +130,14 @@ for the classes `c2, c3, ..., cn`. The class `c1` probabilities are
 chosen so that each `UnivariateFinite` distribution in the returned
 array is a bona fide probability distribution.
 
-```julia
+```julia-repl
 julia> UnivariateFinite([0.1, 0.2, 0.3], augment=true, pool=missing)
 3-element UnivariateFiniteArray{Multiclass{2}, String, UInt8, Float64, 1}:
  UnivariateFinite{Multiclass{2}}(class_1=>0.9, class_2=>0.1)
  UnivariateFinite{Multiclass{2}}(class_1=>0.8, class_2=>0.2)
  UnivariateFinite{Multiclass{2}}(class_1=>0.7, class_2=>0.3)
 
-d2 = UnivariateFinite(['x', 'y', 'z'], probs[:, 2:end], augment=true, pool=v)
+julia> d2 = UnivariateFinite(['x', 'y', 'z'], probs[:, 2:end], augment=true, pool=v);
 julia> pdf(d1, levels(v)) ≈ pdf(d2, levels(v))
 true
 ```
@@ -312,7 +315,7 @@ function UnivariateFinite(
     # retrieve decoder and classes from first key:
     class1         = first(_support)
     parent_decoder = decoder(class1)
-    parent_classes = classes(class1)
+    parent_classes = levels(class1)
 
     # TODO: throw pre-defined exception below
 
@@ -351,7 +354,7 @@ function UnivariateFinite(d::AbstractDict{V,<:Prob};
     "specified pool to order. "
 
     raw_support = keys(d) |> collect
-    _classes = classes(pool)
+    _classes = levels(pool)
     issubset(raw_support, _classes) ||
         error("Specified support, $raw_support, not contained in "*
               "specified pool, $(levels(_classes)). ")
@@ -455,9 +458,9 @@ function _UnivariateFinite(support,
         end
         v = categorical(support, ordered=ordered, compress=true)
         levels!(v, support)
-        _support = classes(v)
+        _support = levels(v)
     else
-        _classes = classes(pool)
+        _classes = levels(pool)
         issubset(support, _classes) || throw(err_incompatible_pool(support, _classes))
         idxs = getindex.(
             Ref(CategoricalArrays.DataAPI.invrefpool(_classes)),

@@ -3,38 +3,43 @@ const UnivariateFiniteUnion{S,V,R,P} =
     Union{UnivariateFinite{S,V,R,P}, UnivariateFiniteArray{S,V,R,P}}
 
 """
-    classes(d::UnivariateFinite)
-    classes(d::UnivariateFiniteArray)
-
-A list of categorial elements in the common pool of classes used to
-construct `d`.
-
-    v = categorical(["yes", "maybe", "no", "yes"])
-    d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    classes(d) # CategoricalArray{String,1,UInt32}["maybe", "no", "yes"]
-
-"""
-classes(d::UnivariateFiniteUnion) = d.decoder.classes
-
-"""
     levels(d::UnivariateFinite)
 
-A list of the raw levels in the common pool of classes used to
-construct `d`, equal to
-`CategoricalArrays.DataAPI.unwrap.(classes(d))`.
+Return the complete set of levels associated with `d` (the elements of the sample space)
+including those with zero associated probabilities. Zero-probability levels need not have
+appeared explicitly during the construction of `d`:
 
-    v = categorical(["yes", "maybe", "no", "yes"])
-    d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    levels(d) # Array{String, 1}["maybe", "no", "yes"]
+```julia
+v = categorical(["yes", "maybe", "no", "yes"])
+d = UnivariateFinite(v[1:2], [0.3, 0.7])
+levels(d) # CategoricalArray{String,1,UInt32}["maybe", "no", "yes"]
+```
+
+!!! note
+
+    Prior to CategoricalDistributions v0.2, this method returned *raw* levels, rather than
+    `CategoricalValue`'s, consistent with the behaviour CategoricalArrays prior to v1.0.
 
 """
-Missings.levels(d::UnivariateFinite)  =
-    CategoricalArrays.DataAPI.unwrap.(classes(d))
+Missings.levels(d::UnivariateFinite)  = d.decoder.classes
 
+"""
+    Distributions.params(d::UnivariateFinite)
+
+Return a named tuple with keys `:levels` and `:probs`:
+
+- `:levels`: The elements of the sample space of `d` as raw values (as opposed to
+  `CategoricalValue`s); the same as
+  `CategoricalArrays.unwrap.(CategoricalArrays.levels(d))`
+
+- `:probs`: A tuple of pairs of the form `level => probability` (probabilities are allowed
+  to have non-unit sum)
+
+"""
 function Dist.params(d::UnivariateFinite)
     raw = raw_support(d) # reflects order of pool at instantiation of d
     pairs = tuple([unwrap.(d.decoder(r))=>d.prob_given_ref[r] for r in raw]...)
-    levs = unwrap.(classes(d))
+    levs = unwrap.(levels(d))
     return (levels=levs, probs=pairs)
 end
 
@@ -47,12 +52,15 @@ raw_support(d::UnivariateFiniteUnion) = collect(keys(d.prob_given_ref))
 
 Ordered list of classes associated with non-zero probabilities.
 
-    v = categorical(["yes", "maybe", "no", "yes"])
-    d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    Distributions.support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
-
+```julia
+v = categorical(["yes", "maybe", "no", "yes"])
+d = UnivariateFinite(v[1:2], [0.3, 0.7])
+Distributions.support(d) # CategoricalArray{String,1,UInt32}["maybe", "yes"]
+```
 """
-Distributions.support(d::UnivariateFiniteUnion) = classes(d)[raw_support(d)]
+Distributions.support(d::UnivariateFinite) = levels(d)[raw_support(d)]
+Distributions.support(d::UnivariateFiniteArray) =
+    CategoricalDistributions.element_levels(d)[raw_support(d)]
 
 """
     fast_support(d::UnivariateFinite)
@@ -80,7 +88,9 @@ end
 # not exported:
 sample_scitype(d::UnivariateFiniteUnion) = d.scitype
 
-CategoricalArrays.isordered(d::UnivariateFiniteUnion) = isordered(classes(d))
+CategoricalArrays.isordered(d::UnivariateFinite) = isordered(levels(d))
+CategoricalArrays.isordered(d::UnivariateFiniteArray) =
+    isordered(CategoricalDistributions.element_levels(d))
 
 
 ## DISPLAY
@@ -139,33 +149,39 @@ end
 
 Probability of `d` at `x`.
 
-    v = categorical(["yes", "maybe", "no", "yes"])
-    d = UnivariateFinite(v[1:2], [0.3, 0.7])
-    pdf(d, "yes")     # 0.3
-    pdf(d, v[1])      # 0.3
-    pdf(d, "no")      # 0.0
-    pdf(d, "house")   # throws error
+```julia
+v = categorical(["yes", "maybe", "no", "yes"])
+d = UnivariateFinite(v[1:2], [0.3, 0.7])
+pdf(d, "yes")     # 0.3
+pdf(d, v[1])      # 0.3
+pdf(d, "no")      # 0.0
+pdf(d, "house")   # throws error
+```
 
 Other similar methods are available too:
 
-    mode(d)    # CategoricalValue{String, UInt32} "maybe"
-    rand(d, 5) # CategoricalArray{String,1,UInt32}["maybe", "no", "maybe", "maybe", "no"] or similar
-    d = fit(UnivariateFinite, v)
-    pdf(d, "maybe") # 0.25
-    logpdf(d, "maybe") # log(0.25)
+```julia
+mode(d)    # CategoricalValue{String, UInt32} "maybe"
+rand(d, 5) # CategoricalArray{String,1,UInt32}["maybe", "no", "maybe", "maybe", "no"] or similar
+d = fit(UnivariateFinite, v)
+pdf(d, "maybe") # 0.25
+logpdf(d, "maybe") # log(0.25)
+```
 
 One can also do weighted fits:
 
-    w = [1, 4, 5, 1] # some weights
-    d = fit(UnivariateFinite, v, w)
-    pdf(d, "maybe") ≈ 4/11 # true
+```julia
+w = [1, 4, 5, 1] # some weights
+d = fit(UnivariateFinite, v, w)
+pdf(d, "maybe") ≈ 4/11 # true
+```
 
 See also `classes`, `support`.
 """
 Dist.pdf(::UnivariateFinite, ::Missing) = missing
 
 function Dist.pdf(d::UnivariateFinite{S,V,R,P}, c) where {S,V,R,P}
-    _classes = classes(d)
+    _classes = levels(d)
     c in _classes || throw(DomainError("Value $c not in pool. "))
     pool = CategoricalArrays.pool(_classes)
     return get(d.prob_given_ref, get(pool, c), zero(P))
@@ -294,11 +310,10 @@ function Base.rand(
     u = rand(rng)
 
     total = zero(P)
-    
-    # For type stability we assign `zero(V)`` as the default ref
-    # This isn't a problem since we know that `rand` is always defined 
-    # as UnivariateFinite objects have non-negative probabilities,
-    # summing up to a non-negative value.
+
+    # For type stability we assign `zero(V)` as the default ref
+    # This isn't a problem since we assume here
+    # UnivariateFinite objects has non-negative probabilities.
     rng_key = zero(V)
     for (ref, prob) in pairs(d.prob_given_ref)
         total += prob
@@ -365,7 +380,7 @@ function Dist.fit(d::Type{<:UnivariateFinite},
               "`CategoricalValue` type. ")
     y = broadcast(identity, skipmissing(v))
     isempty(y) && error("No non-missing data to fit. ")
-    classes_seen = filter(in(unique(y)), classes(y[1]))
+    classes_seen = filter(in(unique(y)), levels(y[1]))
 
     # instantiate and initialize prob dictionary:
     prob_given_class = LittleDict{C,Float64}()
