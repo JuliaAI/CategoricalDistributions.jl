@@ -89,6 +89,8 @@ A callable object for decoding the integer representation of a
 pool as `x`. One can also call `d` on integer arrays, in which case
 `d` is broadcast over all elements.
 
+The levels of `x` can be recovered from `d` with `levels(d)`.
+
 ```julia-repl
 julia> v = categorical(["c", "b", "c", "a"]);
 
@@ -103,6 +105,9 @@ julia> d = decoder(v[3]);
 
 julia> d(int(v)) == v
 true
+
+julia> levels(d) == x
+true
 ```
 
 *Warning:* There is no guarantee that `int(d(u)) == u` will always holds.
@@ -112,6 +117,7 @@ See also: [`int`](@ref).
 """
 decoder(x) = CategoricalDecoder(levels(x))
 
+CategoricalArrays.levels(d::CategoricalDecoder) = d.classes
 (d::CategoricalDecoder{V,R})(i::Integer) where {V,R} =
     CategoricalValue{V,R}(d.classes[i])
 (d::CategoricalDecoder)(a::AbstractArray{<:Integer}) = d.(a)

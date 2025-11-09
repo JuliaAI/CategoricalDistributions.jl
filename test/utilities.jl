@@ -61,6 +61,8 @@ end
     e = decoder(y)
     @test e(int(W)) == W
 
+    @test levels(d) == levels(x)
+
     @test int(levels(y)) == 1:length(levels(x))
 
     # int is based on ordering not index
